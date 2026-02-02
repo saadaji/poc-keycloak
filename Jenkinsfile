@@ -53,7 +53,25 @@ pipeline {
             }
         }
 
-        stage('Download jar from Artifactory') {
+        stage('Maven Clean') {
+            steps {
+                script {
+                    echo "Cleaning Maven project..."
+                    sh 'mvn clean'
+                }
+            }
+        }
+
+        stage('Maven Build') {
+            steps {
+                script {
+                    echo "Building Maven project..."
+                    sh 'mvn package -DskipTests'
+                }
+            }
+        }
+
+        /*stage('Download jar from Artifactory') {
             when {
                 expression { return env.TAG_NAME }
             }
@@ -78,22 +96,17 @@ pipeline {
                                 "flat": "true"
                             },
                             {
-                                "pattern": "istefr/plf/keycloak/keycloak-franceconnect/keycloak-franceconnect-6.2.0.jar",
-                                "target": "keycloak-integrations/",
-                                "flat": "true"
-                            },
-                            {
                                 "pattern": "istefr/plf/keycloak/habilia_protocol_map/habilia_protocol_map_20220613.3.jar",
                                 "target": "keycloak-integrations/",
                                 "flat": "true"
                             },
-			    {
+			                {
                                 "pattern": "istefr/plf/keycloak/benchmark/keycloak-benchmark-dataset-0.7-SNAPSHOT_master.jar",
                                 "target": "keycloak-integrations/",
                                 "flat": "true"
                             },
                             {
-				"pattern": "istefr/plf/keycloak/2sv_sms/dasniko.keycloak-2fa-sms-authenticator_26.1.2.jar",
+				                "pattern": "istefr/plf/keycloak/2sv_sms/dasniko.keycloak-2fa-sms-authenticator_26.1.2.jar",
                                 "target": "keycloak-integrations/",
                                 "flat": "true"
                             },
@@ -114,6 +127,7 @@ pipeline {
             }
 
         }
+    */
 
         stage('Docker Image Build') {
             when {
