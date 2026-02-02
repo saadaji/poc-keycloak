@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/keycloak-2fa-email-authenticator" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/keycloak-2fa-sms" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/keycloak-lastlogin-event-listener" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/keycloak-metrics" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/keycloak-scim-server" vcs="Git" />
+  </component>
+</project>

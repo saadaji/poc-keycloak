@@ -1,0 +1,24 @@
+{
+  "themes": [{
+    "name" : "collectivites",
+    "types": [ "account", "login", "email" ]
+  }, {
+    "name" : "keyman_collectivites",
+    "types": [ "account"]
+  }, {
+    "name" : "keyman_securise",
+    "types": [ "account" ]
+  }, {
+    "name" : "keyman_veolia",
+    "types": [ "account" ]
+  }, {
+    "name" : "securise",
+    "types": [ "account" ]
+  }, {
+    "name" : "veolia",
+    "types": [ "account", "login", "email" ]
+  }, {
+    "name" : "veolia_vwis",
+    "types": [ "login" ]
+  }]
+}

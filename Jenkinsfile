@@ -1,0 +1,134 @@
+pipeline {
+
+    agent {
+        label 'python-terraform-amazonlinux'
+    }
+
+    parameters {
+        string(name: 'TAG_NAME', description: 'TAG used to deploy ex: 17.0.1')
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '15'))
+        disableConcurrentBuilds()
+        timeout(time: 60, unit: 'MINUTES')
+    }
+
+    environment {
+        ARTIFACTORY_SERVER = "Artifactory"
+        ARTIFACTORY_CREDENTIALS = "technique-plf-keycloak"
+    }
+
+    stages {
+
+        stage('Debug') {
+            steps {
+                echo "BRANCH_NAME = ${env.BRANCH_NAME}"
+                echo "TAG_NAME =  ${env.TAG_NAME}"
+            }
+        }
+
+        stage('Prepare environment') {
+            steps {
+                script {
+                    // variables used to build an deploy dockerfiles to ecr repositories
+                    AWS_REGION = 'eu-west-3'
+                    AWS_USER_ACCOUNT = "jenkins_techlead_dev"
+                    //AWS_ACCOUNT = "529031532506"
+                    //ECR_AWS_ACCOUNT = "873168974321"
+                    //AWS_ROLE = "PATRIMOINE_SYSOPS_PRI"
+                    keycloak_vef_codebuild_project_name = "keycloak-vef-registry-prd"
+                }
+            }
+        }
+
+        stage ('Configuration du serveur Artifactory') {
+            steps {
+                rtServer (
+                    id: "${env.ARTIFACTORY_SERVER}",
+                    url: 'https://artifactory.istefr.fr/artifactory',
+                    credentialsId: "${env.ARTIFACTORY_CREDENTIALS}",
+                    timeout: 300
+                )
+            }
+        }
+
+        stage('Download jar from Artifactory') {
+            when {
+                expression { return env.TAG_NAME }
+            }
+            steps {
+                rtDownload (
+                    serverId: "${env.ARTIFACTORY_SERVER}",
+                    spec: """{
+                          "files": [
+                            {
+                                "pattern": "istefr/plf/keycloak/lastlogin_event_list/lastlogin-event-listener-20240920.1.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            },
+                            {
+                                "pattern": "istefr/plf/keycloak/metrics-spi/keycloak-metrics-spi-6.0.1-SNAPSHOT.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            },
+                            {
+                                "pattern": "istefr/plf/keycloak/sns_event_listener/keycloak-event-listener-sns-1.1.0.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            },
+                            {
+                                "pattern": "istefr/plf/keycloak/keycloak-franceconnect/keycloak-franceconnect-6.2.0.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            },
+                            {
+                                "pattern": "istefr/plf/keycloak/habilia_protocol_map/habilia_protocol_map_20220613.3.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            },
+			    {
+                                "pattern": "istefr/plf/keycloak/benchmark/keycloak-benchmark-dataset-0.7-SNAPSHOT_master.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            },
+                            {
+				"pattern": "istefr/plf/keycloak/2sv_sms/dasniko.keycloak-2fa-sms-authenticator_26.1.2.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            },
+                            {
+                                "pattern": "istefr/plf/keycloak/keycloak-email-otp-master/keycloak-email-otp-master_master_V24.0.5.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            },
+                            {
+                                "pattern": "istefr/plf/keycloak/clean_redirect_uri_event/clean_redirect_uri_event_master.jar",
+                                "target": "keycloak-integrations/",
+                                "flat": "true"
+                            }
+                            
+                         ]
+                    }"""
+                )
+            }
+
+        }
+
+        stage('Docker Image Build') {
+            when {
+                expression { return env.TAG_NAME }
+            }
+            steps {
+                script{
+                    echo "TAG_NAME =  ${env.TAG_NAME }"
+
+                    withAWS(credentials: "${AWS_USER_ACCOUNT}"){
+                        echo keycloak_vef_codebuild_project_name
+                        awsCodeBuild projectName: "${keycloak_vef_codebuild_project_name}", region: "${AWS_REGION}", sourceControlType: 'jenkins', credentialsType: 'keys', envVariables: "[{TAG, $env.TAG_NAME }]"
+                    }
+                }
+            }
+        }
+    }
+}

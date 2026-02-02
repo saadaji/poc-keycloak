@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/keycloak-2fa-email-authenticator/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-2fa-email-authenticator/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-2fa-sms-authenticator/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-2fa-sms-authenticator/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-2fa-sms/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-2fa-sms/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-event-listener-sns/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-event-listener-sns/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-franceconnect/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-franceconnect/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-lastlogin/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-lastlogin/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-metrics-spi/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-metrics-spi/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-test/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-test/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-themes/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-themes/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak_franceconnect/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak_franceconnect/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

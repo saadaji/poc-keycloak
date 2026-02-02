@@ -1,0 +1,111 @@
+version: "3.9"
+
+services:
+  keycloak-x-db:
+    image: postgres:17
+    networks:
+      - keycloak-internal
+    ports:
+      - "5432:5432"
+    volumes:
+      - x_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+  keycloak-x-1:
+    image: keycloak-26
+    environment:
+      KC_HOSTNAME_STRICT: false
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: password
+      KC_DB: postgres
+      KC_DB_PASSWORD: password
+      KC_DB_URL_HOST: keycloak-x-db
+      KC_DB_URL_PORT: 5432 
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: admin
+      KC_DB_POOL_INITIAL_SIZE: 10
+      KC_DB_POOL_MAX_SIZE: 20
+      KC_DB_POOL_MIN_SIZE: 10
+      KC_DB_SCHEMA: public
+      KC_CACHE_CONFIG_MUTATE: true
+      KC_CACHE_STACK: 'jdbc-ping-vef'
+      KC_LOG_FORMAT: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"
+      KC_LOG_LEVEL: "INFO"
+      SCIM_AUTHENTICATION_MODE: "KEYCLOAK"
+        #KC_HTTP_METRICS_SLOS: true
+        #KC_CACHE_METRICS_HISTOGRAMS_ENABLED: true
+        #KC_HTTP_METRICS_HISTOGRAMS_ENABLED: true
+    command:
+      - "start"
+    ports:
+      - "8080:8080"
+      - "7800:7800"
+      - "9000:9000"
+    volumes:
+      #- ./custom-caches-jgroups.xml:/opt/keycloak/conf/custom-caches-jgroups.xml:z
+        #./keycloak-integrations/:/opt/keycloak/providers/:z
+      - ./data/:/data:z
+    depends_on:
+      - keycloak-x-db
+    networks:
+      - keycloak-internal
+
+  prometheus:
+    image: prom/prometheus:latest
+    networks:
+      - keycloak-internal
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    depends_on:
+      - keycloak-x-1
+
+  prometheus-bg-adapter:
+    image: quay.io/kohlstechnology/prometheus_bigquery_remote_storage_adapter:v0.8.0
+    user: "root"
+    environment:
+      PROMBQ_GCP_PROJECT_ID: "fr-ist-isteau-keycloak-dev"
+      PROMBQ_DATASET: "kpitest"
+      PROMBQ_TABLE: "kc_metrics"
+      PROMBQ_TIMEOUT: "2m"
+      GOOGLE_APPLICATION_CREDENTIALS: "/root/.config/gcloud/application_default_credentials.json"
+    ports:
+      - "9201:9201"
+    networks:
+      - keycloak-internal
+    volumes:
+      - /home/saji/.config:/root/.config:ro
+    depends_on:
+      - prometheus
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - grafana-conf:/etc/grafana
+    networks:
+      - keycloak-internal
+
+volumes:
+  x_postgres_data:
+    driver: local
+  prometheus-data:
+  grafana-data:
+  grafana-conf:
+
+networks:
+  keycloak-internal:
+    name: keycloak-internal
