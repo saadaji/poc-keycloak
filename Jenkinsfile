@@ -1,7 +1,7 @@
 pipeline {
 
     agent {
-        label 'python-terraform-amazonlinux'
+        label 'maven'
     }
 
     parameters {
