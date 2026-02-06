@@ -1,0 +1,111 @@
+pipeline {
+
+    agent {
+        label 'maven'
+    }
+
+    parameters {
+        string(name: 'TAG_NAME', description: 'TAG used to deploy')
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '15'))
+        disableConcurrentBuilds()
+        timeout(time: 60, unit: 'MINUTES')
+    }
+
+    environment {
+        ARTIFACTORY_SERVER = "Artifactory"
+        ARTIFACTORY_CREDENTIALS = "technique-plf-keycloak"
+    }
+
+    stages {
+
+        stage('Debug') {
+            steps {
+                echo "TAG_NAME =  ${env.TAG_NAME}"
+            }
+        }
+
+        stage('Checkout git tag'){
+            when {
+                expression { return env.TAG_NAME }
+            }
+            steps {
+               sh "git checkout ${env.TAG_NAME}"
+            }
+        }
+
+        stage('Build') {
+            when {
+                expression { return env.TAG_NAME }
+            }
+            steps {
+                script{
+                    sh '''
+                    mvn clean package
+                    '''
+                }
+            }
+        }
+
+        stage('Sonarqube analysis') {
+            when {
+                expression { return env.TAG_NAME }
+            }
+            environment {
+                scannerHome = tool 'Sonarqube'
+            }
+            steps {
+                withCredentials([string(credentialsId: 'technique-sonarqube', variable: 'SONARQUBE_LOGIN')]){
+                    withSonarQubeEnv('Sonarqube') {
+                        dir('.') {
+                            sh '''
+                                ${scannerHome}/bin/sonar-scanner \
+                                -Dsonar.projectKey=plf_clp_federation_id_keycloak_extensions_habilia_protocol_mapper \
+                                -Dsonar.host.url=https://sonarqube.istefr.fr \
+                                -Dsonar.sources=src/main/java \
+                                -Dsonar.java.binaries=target/classes \
+                                -Dsonar.login=$SONARQUBE_LOGIN \
+                                -Dsonar.projectVersion=${TAG_NAME}
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+         stage ('Configuration du serveur Artifactory') {
+            when {
+                expression { return env.TAG_NAME }
+            }
+            steps {
+                rtServer (
+                    id: "${env.ARTIFACTORY_SERVER}",
+                    url: 'https://artifactory.istefr.fr/artifactory',
+                    credentialsId: "${env.ARTIFACTORY_CREDENTIALS}",
+                    timeout: 300
+                )
+            }
+        }
+
+         stage('Publish') {
+            when {
+                expression { return env.TAG_NAME }
+            }
+            steps {
+                rtUpload (
+                    serverId: "${env.ARTIFACTORY_SERVER}",
+                    spec: """{
+                          "files": [
+                            {
+                                "pattern": "*.jar",
+                                "target": "istefr/plf/keycloak/habilia_protocol_map/habilia_protocol_map_${env.TAG_NAME}.jar"
+                            }
+                         ]
+                    }"""
+                )
+            }
+        }
+    }
+}

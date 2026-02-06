@@ -11,6 +11,8 @@
     <file url="file://$PROJECT_DIR$/keycloak-event-listener-sns/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/keycloak-franceconnect/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/keycloak-franceconnect/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-habilia-mapper/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/keycloak-habilia-mapper/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/keycloak-lastlogin/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/keycloak-lastlogin/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/keycloak-metrics-spi/src/main/java" charset="UTF-8" />

@@ -62,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('Download jar from Artifactory') {
+        /*stage('Download jar from Artifactory') {
             when {
                 expression { return env.TAG_NAME }
             }
@@ -81,7 +81,7 @@ pipeline {
                 )
             }
 
-        }
+        }*/
 
         stage('Docker Image Build') {
             when {

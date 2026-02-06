@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>vef.keycloak</groupId>
-        <artifactId>plf_clp_federation_id_keycloak_vef</artifactId>
+        <artifactId>plf_clp_federation_id_keycloak_corporate</artifactId>
         <version>26.4.7.1-SNAPSHOT</version>
     </parent>
     <artifactId>keycloak-test</artifactId>
-    <name>Archetype - keycloak-test</name>
+    <name>VEF keycloak test</name>
     <url>http://maven.apache.org</url>
 
     <properties>

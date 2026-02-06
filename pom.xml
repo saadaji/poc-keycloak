@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>vef.keycloak</groupId>
-  <artifactId>plf_clp_federation_id_keycloak_vef</artifactId>
+  <artifactId>plf_clp_federation_id_keycloak_corporate</artifactId>
   <version>26.4.7.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>VEF keycloak</name>
@@ -11,10 +11,11 @@
         <module>keycloak-themes</module>
         <module>keycloak-2fa-email-authenticator</module>
         <module>keycloak-2fa-sms</module>
-        <module>keycloak-test</module>
         <module>keycloak-event-listener-sns</module>
+        <module>keycloak-habilia-mapper</module>
         <module>keycloak-metrics</module>
         <module>keycloak-image</module>
+        <module>keycloak-test</module>
     </modules>
 
     <properties>
@@ -24,28 +25,30 @@
         <exec.allowed.modules>keycloak-themes</exec.allowed.modules>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-admin-ui</artifactId>
-            <version>${keycloak.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-account-ui</artifactId>
-            <version>${keycloak.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-themes-vendor</artifactId>
-            <version>${keycloak.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>theme-verifier-maven-plugin</artifactId>
-            <version>${keycloak.version}</version>
-        </dependency>
-    </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-admin-ui</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-account-ui</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-themes-vendor</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>theme-verifier-maven-plugin</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
