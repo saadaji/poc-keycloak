@@ -1,7 +1,7 @@
 pipeline {
 
     agent {
-        label 'maven'
+        label 'maven21'
     }
 
     parameters {
