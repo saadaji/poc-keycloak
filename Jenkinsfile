@@ -73,7 +73,7 @@ pipeline {
                           "files": [
                             {
                                 "pattern": "istefr/plf/keycloak/habilia_protocol_map/habilia_protocol_map_20220613.3.jar",
-                                "target": "keycloak-image/providers",
+                                "target": "keycloak-image/providers/",
                                 "flat": "true"
                             }
                          ]
