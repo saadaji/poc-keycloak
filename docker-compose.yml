@@ -9,10 +9,17 @@ services:
       - "5432:5432"
     volumes:
       - x_postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
   keycloak-x-1:
     image: keycloak-26
     environment:
@@ -98,6 +105,44 @@ services:
       - grafana-conf:/etc/grafana
     networks:
       - keycloak-internal
+
+  migrate:
+    depends_on:
+      keycloak-x-db:
+        condition: service_healthy
+    image: openfga/openfga:latest
+    container_name: migrate
+    command: migrate
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://admin:password@keycloak-x-db:5432/openfga?sslmode=disable
+    networks:
+      - keycloak-internal
+
+  openfga:
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    image: openfga/openfga:latest
+    container_name: openfga
+    environment:
+      - OPENFGA_DATASTORE_ENGINE=postgres
+      - OPENFGA_DATASTORE_URI=postgres://admin:password@keycloak-x-db:5432/openfga?sslmode=disable
+      - OPENFGA_LOG_FORMAT=json
+    command: 
+      - run
+      - --http-cors-allowed-origins=https://play.fga.dev,http://localhost:3000,http://localhost:3001
+      - --http-cors-allowed-headers=*
+    networks:
+      - keycloak-internal
+    ports:
+      # Needed for the http server
+      - "8082:8080"
+      # Needed for the grpc server (if used)
+      - "8081:8081"
+      # Needed for the playground (Do not enable in prod!)
+      - "3001:3000"
+  
 
 volumes:
   x_postgres_data:

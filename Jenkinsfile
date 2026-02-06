@@ -53,25 +53,16 @@ pipeline {
             }
         }
 
-        stage('Maven Clean') {
-            steps {
-                script {
-                    echo "Cleaning Maven project..."
-                    sh 'mvn clean'
-                }
-            }
-        }
-
         stage('Maven Build') {
             steps {
                 script {
                     echo "Building Maven project..."
-                    sh 'mvn package -DskipTests'
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
-        /*stage('Download jar from Artifactory') {
+        stage('Download jar from Artifactory') {
             when {
                 expression { return env.TAG_NAME }
             }
@@ -81,53 +72,16 @@ pipeline {
                     spec: """{
                           "files": [
                             {
-                                "pattern": "istefr/plf/keycloak/lastlogin_event_list/lastlogin-event-listener-20240920.1.jar",
-                                "target": "keycloak-integrations/",
-                                "flat": "true"
-                            },
-                            {
-                                "pattern": "istefr/plf/keycloak/metrics-spi/keycloak-metrics-spi-6.0.1-SNAPSHOT.jar",
-                                "target": "keycloak-integrations/",
-                                "flat": "true"
-                            },
-                            {
-                                "pattern": "istefr/plf/keycloak/sns_event_listener/keycloak-event-listener-sns-1.1.0.jar",
-                                "target": "keycloak-integrations/",
-                                "flat": "true"
-                            },
-                            {
                                 "pattern": "istefr/plf/keycloak/habilia_protocol_map/habilia_protocol_map_20220613.3.jar",
-                                "target": "keycloak-integrations/",
-                                "flat": "true"
-                            },
-			                {
-                                "pattern": "istefr/plf/keycloak/benchmark/keycloak-benchmark-dataset-0.7-SNAPSHOT_master.jar",
-                                "target": "keycloak-integrations/",
-                                "flat": "true"
-                            },
-                            {
-				                "pattern": "istefr/plf/keycloak/2sv_sms/dasniko.keycloak-2fa-sms-authenticator_26.1.2.jar",
-                                "target": "keycloak-integrations/",
-                                "flat": "true"
-                            },
-                            {
-                                "pattern": "istefr/plf/keycloak/keycloak-email-otp-master/keycloak-email-otp-master_master_V24.0.5.jar",
-                                "target": "keycloak-integrations/",
-                                "flat": "true"
-                            },
-                            {
-                                "pattern": "istefr/plf/keycloak/clean_redirect_uri_event/clean_redirect_uri_event_master.jar",
-                                "target": "keycloak-integrations/",
+                                "target": "keycloak-image/providers",
                                 "flat": "true"
                             }
-                            
                          ]
                     }"""
                 )
             }
 
         }
-    */
 
         stage('Docker Image Build') {
             when {
