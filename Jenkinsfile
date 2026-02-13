@@ -61,26 +61,20 @@ pipeline {
                 '''
             }
         }
-        stage('Setup Podman') {
-            steps {
-                sh '''
-                    podman --version
-                    systemctl --user enable --now podman.socket
-                '''
-            }
-        }
+
 
         stage('Test') {
             environment {
-                DOCKER_HOST = 'unix:///run/user/$(id -u)/podman/podman.sock'
+                DOCKER_HOST = 'unix:///run/user/1000/podman/podman.sock'
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
-                // Set Docker config (optional)
-                TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE = '/run/podman/podman.sock'
-            // Disable host detection
-            TESTCONTAINERS_HOST_OVERRIDE = 'localhost'
             }
             steps {
-                sh 'mvn clean test'
+                sh '''
+                    # Start podman service
+                    podman system service --time=0 &
+                    sleep 5
+                    mvn clean test
+                '''
             }
         }
 
