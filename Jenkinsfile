@@ -60,12 +60,11 @@ pipeline {
                     sudo apt-get update
                     sudo apt-get install -y docker.io
                     
-                    # Start Docker service
-                    sudo systemctl start docker
-                    sudo systemctl enable docker
+                    # Start Docker service (compatible with non-systemd systems)
+                    sudo service docker start || true
                     
                     # Add jenkins user to docker group
-                    sudo usermod -aG docker jenkins
+                    sudo usermod -aG docker jenkins || true
                     
                     # Verify
                     sudo docker version
