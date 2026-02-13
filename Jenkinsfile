@@ -53,11 +53,22 @@ pipeline {
             }
         }
 
-        stage('Install Podman') {
+        stage('Install Docker') {
             steps {
                 sh '''
+                    # Install Docker
                     sudo apt-get update
-                    sudo apt-get install -y podman
+                    sudo apt-get install -y docker.io
+                    
+                    # Start Docker service
+                    sudo systemctl start docker
+                    sudo systemctl enable docker
+                    
+                    # Add jenkins user to docker group
+                    sudo usermod -aG docker jenkins
+                    
+                    # Verify
+                    sudo docker version
                 '''
             }
         }
@@ -65,14 +76,12 @@ pipeline {
 
         stage('Test') {
             environment {
-                DOCKER_HOST = 'unix:///run/user/1000/podman/podman.sock'
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
             }
             steps {
                 sh '''
-                    # Start podman service
-                    podman system service --time=0 &
-                    sleep 5
+                   # May need to use sudo or restart Jenkins agent for group changes
+                    sudo -u jenkins docker ps
                     mvn clean test
                 '''
             }
