@@ -33,10 +33,7 @@ pipeline {
                 echo "BRANCH_NAME = ${env.BRANCH_NAME}"
                 echo "TAG_NAME =  ${env.TAG_NAME}"
                 // Verify Podman is accessible
-                sh 'podman version'
-                sh 'podman info'
-                // Check socket exists and is accessible
-                sh 'ls -la /run/podman/podman.sock || ls -la /run/user/$(id -u)/podman/podman.sock'
+                sh 'docker version'
             }
         }
 
