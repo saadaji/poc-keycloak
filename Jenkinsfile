@@ -53,11 +53,20 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            environment {
+                 DOCKER_HOST = 'unix:///run/podman/podman.sock'
+            }
+            steps {
+                sh 'mvn clean test'
+            }
+        }
+
         stage('Maven Build') {
             steps {
                 script {
                     echo "Building Maven project..."
-                    sh 'mvn clean package'
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
