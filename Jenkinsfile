@@ -17,6 +17,13 @@ pipeline {
     environment {
         ARTIFACTORY_SERVER = "Artifactory"
         ARTIFACTORY_CREDENTIALS = "technique-plf-keycloak"
+        DOCKER_HOST = 'unix:///run/podman/podman.sock'
+        // Disable Ryuk (often needed with Podman)
+        TESTCONTAINERS_RYUK_DISABLED = 'true'
+        // Set Docker config (optional)
+        TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE = '/run/podman/podman.sock'
+        // Disable host detection
+        TESTCONTAINERS_HOST_OVERRIDE = 'localhost'
     }
 
     stages {
@@ -25,6 +32,11 @@ pipeline {
             steps {
                 echo "BRANCH_NAME = ${env.BRANCH_NAME}"
                 echo "TAG_NAME =  ${env.TAG_NAME}"
+                // Verify Podman is accessible
+                sh 'podman version'
+                sh 'podman info'
+                // Check socket exists and is accessible
+                sh 'ls -la /run/podman/podman.sock || ls -la /run/user/$(id -u)/podman/podman.sock'
             }
         }
 
@@ -54,9 +66,6 @@ pipeline {
         }
 
         stage('Test') {
-            environment {
-                 DOCKER_HOST = 'unix:///run/podman/podman.sock'
-            }
             steps {
                 sh 'mvn clean test'
             }
