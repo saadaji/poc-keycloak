@@ -55,8 +55,18 @@ pipeline {
 
         stage('Install Podman') {
             steps {
-                sh 'sudo yum install -y podman' // or apt-get for Debian/Ubuntu
-                sh 'systemctl --user enable --now podman.socket'
+                sh '''
+                    sudo apt-get update
+                    sudo apt-get install -y podman
+                '''
+            }
+        }
+        stage('Setup Podman') {
+            steps {
+                sh '''
+                    podman --version
+                    systemctl --user enable --now podman.socket
+                '''
             }
         }
 
