@@ -63,6 +63,14 @@ pipeline {
                     echo "Podman version:"
                     podman --version
                     
+                    echo "Setting up /dev/net/tun..."
+                    sudo mkdir -p /dev/net || true
+                    sudo modprobe tun 2>/dev/null || echo "Could not load tun module"
+                    if [ ! -c /dev/net/tun ]; then
+                        sudo mknod /dev/net/tun c 10 200 2>/dev/null || echo "Could not create /dev/net/tun"
+                    fi
+                    sudo chmod 666 /dev/net/tun 2>/dev/null || true
+                    
                     echo "Setting up Podman service for Testcontainers..."
                     SOCKET_PATH="/var/run/docker.sock"
                     PODMAN_ROOT="/var/lib/jenkins-podman"
@@ -73,6 +81,10 @@ pipeline {
                     sudo rm -f "$SOCKET_PATH" 2>/dev/null || true
                     
                     cat > /tmp/podman-jenkins.conf <<'EOF'
+[network]
+network_backend="netavark"
+default_rootless_network_cmd="slirp4netns"
+
 [containers]
 netns="host"
 userns="host"
