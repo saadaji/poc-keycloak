@@ -124,6 +124,7 @@ pipeline {
                     cat > "$PODMAN_CONTAINERS_CONF" <<'EOF'
 [network]
 network_backend="netavark"
+default_network="host"
 default_rootless_network_cmd="slirp4netns"
 
 [containers]
