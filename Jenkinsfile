@@ -42,36 +42,6 @@ pipeline {
             }
         }
 
-        stage('Install Podman') {
-            steps {
-                sh '''
-                    if command -v podman >/dev/null 2>&1; then
-                        podman --version
-                        exit 0
-                    fi
-
-                    SUDO=""
-                    if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
-                        SUDO="sudo"
-                    fi
-
-                    if command -v apt-get >/dev/null 2>&1; then
-                        $SUDO apt-get update
-                        $SUDO apt-get install -y podman slirp4netns
-                    elif command -v dnf >/dev/null 2>&1; then
-                        $SUDO dnf install -y podman
-                    elif command -v yum >/dev/null 2>&1; then
-                        $SUDO yum install -y podman
-                    else
-                        echo "No supported package manager found to install Podman"
-                        exit 1
-                    fi
-
-                    $SUDO podman --version
-                '''
-            }
-        }
-
         stage ('Configuration du serveur Artifactory') {
             steps {
                 rtServer (
@@ -87,9 +57,6 @@ pipeline {
             environment {
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
                 TESTCONTAINERS_REUSE_ENABLE = 'true'
-                TESTCONTAINERS_CHECKS_DISABLE = 'true'
-                TESTCONTAINERS_HOST_OVERRIDE = '127.0.0.1'
-                TESTCONTAINERS_DOCKER_CLIENT_PROVIDER_STRATEGY = 'org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy'
                 DOCKER_HOST = 'unix:///var/run/docker.sock'
                 TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE = '/var/run/docker.sock'
             }
@@ -98,73 +65,31 @@ pipeline {
                     set -e
 
                     SUDO=""
-                    if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+                    if [ "$(id -u)" -ne 0 ]; then
+                        if ! command -v sudo >/dev/null 2>&1; then
+                            echo "sudo is required to run docker on this Jenkins agent."
+                            exit 1
+                        fi
                         SUDO="sudo"
                     fi
 
-                    if [ -z "$SUDO" ] && [ "$(id -u)" -ne 0 ]; then
-                        echo "sudo is required on this Jenkins agent for podman"
+                    if ! command -v docker >/dev/null 2>&1; then
+                        echo "Docker CLI is not installed on this Jenkins agent."
                         exit 1
                     fi
 
-                    if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-                        echo "Using Docker daemon for Testcontainers"
-                        docker --version
-                        mvn -Dtestcontainers.reuse.enable=true clean test
-                        exit 0
-                    fi
-
-                    echo "Docker daemon unavailable, using sudo podman service on /var/run/docker.sock"
-
-                    SOCKET_PATH="/var/run/docker.sock"
-                    PODMAN_ROOT="/var/tmp/jenkins-podman-root"
-                    PODMAN_RUNROOT="/var/tmp/jenkins-podman-runroot"
-                    PODMAN_CONTAINERS_CONF="/tmp/jenkins-podman-containers.conf"
-
-                    cat > "$PODMAN_CONTAINERS_CONF" <<'EOF'
-[network]
-network_backend="netavark"
-default_network="host"
-default_rootless_network_cmd="slirp4netns"
-
-[containers]
-netns="host"
-EOF
-
-                    $SUDO mkdir -p /dev/net || true
-                    $SUDO modprobe tun || true
-                    if ! $SUDO test -c /dev/net/tun; then
-                        $SUDO mknod /dev/net/tun c 10 200 || true
-                    fi
-                    $SUDO chmod 666 /dev/net/tun || true
-
-                    $SUDO mkdir -p "$PODMAN_ROOT" "$PODMAN_RUNROOT"
-
-                    $SUDO pkill -f "podman system service.*$SOCKET_PATH" || true
-                    $SUDO rm -f "$SOCKET_PATH" || true
-
-                    if ! $SUDO test -S "$SOCKET_PATH"; then
-                        $SUDO env CONTAINERS_CONF="$PODMAN_CONTAINERS_CONF" nohup podman --storage-driver=vfs --root "$PODMAN_ROOT" --runroot "$PODMAN_RUNROOT" system service --time=0 "unix://$SOCKET_PATH" >/tmp/podman-system-service.log 2>&1 &
-                        for i in $(seq 1 20); do
-                            $SUDO test -S "$SOCKET_PATH" && break
-                            sleep 1
-                        done
-                    fi
-
-                    if ! $SUDO test -S "$SOCKET_PATH"; then
-                        echo "Podman socket was not created: $SOCKET_PATH"
-                        tail -n 100 /tmp/podman-system-service.log || true
+                    if [ ! -S /var/run/docker.sock ]; then
+                        echo "Docker socket /var/run/docker.sock is not available on this Jenkins agent."
                         exit 1
                     fi
 
-                    $SUDO chmod 666 "$SOCKET_PATH" || true
+                    if ! $SUDO docker info >/dev/null 2>&1; then
+                        echo "Docker daemon is not reachable with sudo on this Jenkins agent."
+                        exit 1
+                    fi
 
-                    $SUDO podman --version
-                    $SUDO env CONTAINERS_CONF="$PODMAN_CONTAINERS_CONF" podman --storage-driver=vfs --root "$PODMAN_ROOT" --runroot "$PODMAN_RUNROOT" info
-
-                    echo "DOCKER_HOST=$DOCKER_HOST"
-                    echo "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=$TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE"
-                    [ -S "${DOCKER_HOST#unix://}" ] || { echo "Docker socket does not exist"; exit 1; }
+                    $SUDO docker --version
+                    $SUDO docker info > /dev/null
 
                     mvn -Dtestcontainers.reuse.enable=true clean test
                 '''
