@@ -113,6 +113,8 @@ pipeline {
                         tail -n 200 /tmp/dockerd.log || true
                         exit 1
                     fi
+
+                    $SUDO chmod 666 /var/run/docker.sock || true
                 '''
             }
         }
@@ -132,6 +134,7 @@ pipeline {
             environment {
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
                 TESTCONTAINERS_REUSE_ENABLE = 'true'
+                TESTCONTAINERS_DOCKER_CLIENT_PROVIDER_STRATEGY = 'org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy'
                 DOCKER_HOST = 'unix:///var/run/docker.sock'
                 TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE = '/var/run/docker.sock'
             }
@@ -163,9 +166,22 @@ pipeline {
                         exit 1
                     fi
 
+                    $SUDO chmod 666 /var/run/docker.sock || true
+
                     $SUDO docker --version
                     $SUDO docker info > /dev/null
 
+                    if ! docker info >/dev/null 2>&1; then
+                        echo "Docker daemon is reachable with sudo but not by Jenkins user."
+                        ls -l /var/run/docker.sock || true
+                        exit 1
+                    fi
+
+                    DOCKER_HOST="unix:///var/run/docker.sock" \
+                    TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/var/run/docker.sock" \
+                    TESTCONTAINERS_DOCKER_CLIENT_PROVIDER_STRATEGY="org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy" \
+                    TESTCONTAINERS_RYUK_DISABLED="true" \
+                    TESTCONTAINERS_REUSE_ENABLE="true" \
                     mvn -Dtestcontainers.reuse.enable=true clean test
                 '''
             }
