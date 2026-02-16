@@ -45,7 +45,7 @@ pipeline {
         stage('Install Podman') {
             steps {
                 sh '''
-                    suod apt-get update
+                    sudo apt-get update
                     sudo apt-get install -y podman
                 '''
             }
