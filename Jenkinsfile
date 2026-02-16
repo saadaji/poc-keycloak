@@ -42,6 +42,15 @@ pipeline {
             }
         }
 
+        stage('Install Podman') {
+            steps {
+                sh '''
+                    suod apt-get update
+                    sudo apt-get install -y podman
+                '''
+            }
+        }
+
         stage ('Configuration du serveur Artifactory') {
             steps {
                 rtServer (
@@ -53,34 +62,13 @@ pipeline {
             }
         }
 
-        stage('Install Docker') {
-            steps {
-                sh '''
-                    # Install Docker
-                    sudo apt-get update
-                    sudo apt-get install -y docker.io
-                    
-                    # Start Docker service (compatible with non-systemd systems)
-                    sudo service docker start || true
-                    
-                    # Add jenkins user to docker group
-                    sudo usermod -aG docker jenkins || true
-                    
-                    # Verify
-                    sudo docker version
-                '''
-            }
-        }
-
-
         stage('Test') {
             environment {
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
             }
             steps {
                 sh '''
-                   # May need to use sudo or restart Jenkins agent for group changes
-                    sudo -u jenkins docker ps
+                    sudo podman --version
                     mvn clean test
                 '''
             }
