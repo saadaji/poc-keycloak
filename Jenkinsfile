@@ -84,7 +84,6 @@ pipeline {
 [network]
 network_backend="netavark"
 default_network="host"
-default_rootless_network_cmd="slirp4netns"
 
 [containers]
 netns="host"
@@ -94,7 +93,6 @@ default_sysctls = []
 [engine]
 cgroup_manager="cgroupfs"
 events_logger="file"
-network_cmd_options=["host"]
 EOF
                     
                     echo "Starting Podman service..."
