@@ -42,33 +42,77 @@ pipeline {
             }
         }
 
-        stage('Setup Docker') {
+        stage('Setup Podman') {
             steps {
                 sh '''
-                    if command -v docker >/dev/null 2>&1; then
-                        echo "Docker already installed"
-                        docker --version || true
-                    else
-                        echo "Installing Docker..."
+                    set -e
+                    
+                    if ! command -v podman >/dev/null 2>&1; then
+                        echo "Installing Podman..."
                         if command -v apt-get >/dev/null 2>&1; then
                             sudo apt-get update
-                            sudo apt-get install -y docker.io
+                            sudo apt-get install -y podman slirp4netns
                         elif command -v yum >/dev/null 2>&1; then
-                            sudo yum install -y docker
+                            sudo yum install -y podman
                         else
-                            echo "ERROR: Cannot install Docker - no supported package manager found"
+                            echo "ERROR: Cannot install Podman - no supported package manager found"
                             exit 1
                         fi
                     fi
                     
-                    echo "Starting Docker daemon..."
-                    sudo systemctl start docker 2>/dev/null || sudo service docker start 2>/dev/null || echo "Docker service start skipped"
+                    echo "Podman version:"
+                    podman --version
                     
-                    echo "Configuring Docker socket permissions..."
-                    sudo chmod 666 /var/run/docker.sock 2>/dev/null || echo "Could not set socket permissions"
+                    echo "Setting up Podman service for Testcontainers..."
+                    SOCKET_PATH="/var/run/docker.sock"
+                    PODMAN_ROOT="/var/lib/jenkins-podman"
+                    PODMAN_RUNROOT="/var/run/jenkins-podman"
                     
-                    echo "Adding jenkins user to docker group..."
-                    sudo usermod -aG docker jenkins 2>/dev/null || echo "Could not add user to docker group"
+                    sudo mkdir -p "$PODMAN_ROOT" "$PODMAN_RUNROOT" /var/run
+                    sudo pkill -f "podman system service" 2>/dev/null || true
+                    sudo rm -f "$SOCKET_PATH" 2>/dev/null || true
+                    
+                    cat > /tmp/podman-jenkins.conf <<'EOF'
+[containers]
+netns="host"
+userns="host"
+
+[engine]
+cgroup_manager="cgroupfs"
+events_logger="file"
+EOF
+                    
+                    echo "Starting Podman service..."
+                    sudo env CONTAINERS_CONF=/tmp/podman-jenkins.conf nohup podman \
+                        --storage-driver=vfs \
+                        --root "$PODMAN_ROOT" \
+                        --runroot "$PODMAN_RUNROOT" \
+                        system service --time=0 "unix://$SOCKET_PATH" \
+                        >/tmp/podman-service.log 2>&1 &
+                    
+                    echo "Waiting for Podman socket..."
+                    for i in $(seq 1 30); do
+                        if [ -S "$SOCKET_PATH" ]; then
+                            echo "Podman socket created"
+                            sudo chmod 666 "$SOCKET_PATH"
+                            break
+                        fi
+                        sleep 1
+                    done
+                    
+                    if [ ! -S "$SOCKET_PATH" ]; then
+                        echo "ERROR: Podman socket not created"
+                        tail -n 50 /tmp/podman-service.log 2>/dev/null || true
+                        exit 1
+                    fi
+                    
+                    echo "Testing Podman connection..."
+                    if podman --remote --url "unix://$SOCKET_PATH" info >/dev/null 2>&1; then
+                        echo "Podman service is ready"
+                    else
+                        echo "WARNING: Podman service may not be fully ready"
+                        tail -n 20 /tmp/podman-service.log 2>/dev/null || true
+                    fi
                 '''
             }
         }
@@ -88,25 +132,21 @@ pipeline {
             environment {
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
                 TESTCONTAINERS_REUSE_ENABLE = 'true'
+                DOCKER_HOST = 'unix:///var/run/docker.sock'
             }
             steps {
                 sh '''
                     set -e
 
-                    if ! command -v docker >/dev/null 2>&1; then
-                        echo "ERROR: Docker is not installed on maven21 agent."
-                        echo "Please install Docker on the maven21 Jenkins agent or configure a Docker-enabled agent."
+                    if [ ! -S /var/run/docker.sock ]; then
+                        echo "ERROR: Docker-compatible socket not found at /var/run/docker.sock"
+                        echo "The Setup Podman stage should have created this socket."
+                        ls -la /var/run/ | grep -E '(docker|podman)' || echo "No docker/podman sockets found"
                         exit 1
                     fi
 
-                    if ! docker info >/dev/null 2>&1; then
-                        echo "ERROR: Docker daemon is not running or not accessible on maven21 agent."
-                        echo "Ensure Docker daemon is running and Jenkins user has socket access (add to 'docker' group or set socket permissions)."
-                        exit 1
-                    fi
-
-                    docker --version
-                    docker info
+                    echo "Docker-compatible socket found, running tests..."
+                    ls -l /var/run/docker.sock
 
                     mvn -Dtestcontainers.reuse.enable=true clean test
                 '''
