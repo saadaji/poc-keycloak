@@ -42,7 +42,36 @@ pipeline {
             }
         }
 
-
+        stage('Setup Docker') {
+            steps {
+                sh '''
+                    if command -v docker >/dev/null 2>&1; then
+                        echo "Docker already installed"
+                        docker --version || true
+                    else
+                        echo "Installing Docker..."
+                        if command -v apt-get >/dev/null 2>&1; then
+                            sudo apt-get update
+                            sudo apt-get install -y docker.io
+                        elif command -v yum >/dev/null 2>&1; then
+                            sudo yum install -y docker
+                        else
+                            echo "ERROR: Cannot install Docker - no supported package manager found"
+                            exit 1
+                        fi
+                    fi
+                    
+                    echo "Starting Docker daemon..."
+                    sudo systemctl start docker 2>/dev/null || sudo service docker start 2>/dev/null || echo "Docker service start skipped"
+                    
+                    echo "Configuring Docker socket permissions..."
+                    sudo chmod 666 /var/run/docker.sock 2>/dev/null || echo "Could not set socket permissions"
+                    
+                    echo "Adding jenkins user to docker group..."
+                    sudo usermod -aG docker jenkins 2>/dev/null || echo "Could not add user to docker group"
+                '''
+            }
+        }
 
         stage ('Configuration du serveur Artifactory') {
             steps {
