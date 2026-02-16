@@ -42,6 +42,49 @@ pipeline {
             }
         }
 
+        stage('Install Docker') {
+            steps {
+                sh '''
+                    set -e
+
+                    SUDO=""
+                    if [ "$(id -u)" -ne 0 ]; then
+                        if ! command -v sudo >/dev/null 2>&1; then
+                            echo "sudo is required to install docker on this Jenkins agent."
+                            exit 1
+                        fi
+                        SUDO="sudo"
+                    fi
+
+                    if command -v docker >/dev/null 2>&1; then
+                        echo "Docker CLI already installed"
+                    else
+                        if command -v apt-get >/dev/null 2>&1; then
+                            $SUDO apt-get update
+                            $SUDO apt-get install -y docker.io
+                        elif command -v dnf >/dev/null 2>&1; then
+                            $SUDO dnf install -y docker
+                        elif command -v yum >/dev/null 2>&1; then
+                            $SUDO yum install -y docker
+                        else
+                            echo "No supported package manager found to install docker"
+                            exit 1
+                        fi
+                    fi
+
+                    if command -v systemctl >/dev/null 2>&1; then
+                        $SUDO systemctl start docker || true
+                        $SUDO systemctl enable docker || true
+                    elif command -v service >/dev/null 2>&1; then
+                        $SUDO service docker start || true
+                    fi
+
+                    $SUDO docker --version
+                    $SUDO docker info >/dev/null
+                '''
+            }
+        }
+
         stage ('Configuration du serveur Artifactory') {
             steps {
                 rtServer (
