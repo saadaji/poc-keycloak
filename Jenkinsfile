@@ -56,9 +56,6 @@ pipeline {
         }
 
         stage('Test') {
-            agent {
-                label 'docker'
-            }
             environment {
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
                 TESTCONTAINERS_REUSE_ENABLE = 'true'
@@ -68,12 +65,14 @@ pipeline {
                     set -e
 
                     if ! command -v docker >/dev/null 2>&1; then
-                        echo "ERROR: Docker CLI not found. This stage requires a Jenkins agent with label 'docker' that has Docker preinstalled."
+                        echo "ERROR: Docker is not installed on maven21 agent."
+                        echo "Please install Docker on the maven21 Jenkins agent or configure a Docker-enabled agent."
                         exit 1
                     fi
 
                     if ! docker info >/dev/null 2>&1; then
-                        echo "ERROR: Docker daemon not accessible. Ensure the agent has a working Docker daemon and socket permissions."
+                        echo "ERROR: Docker daemon is not running or not accessible on maven21 agent."
+                        echo "Ensure Docker daemon is running and Jenkins user has socket access (add to 'docker' group or set socket permissions)."
                         exit 1
                     fi
 
