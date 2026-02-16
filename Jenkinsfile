@@ -57,7 +57,7 @@ pipeline {
 
                     if command -v apt-get >/dev/null 2>&1; then
                         $SUDO apt-get update
-                        $SUDO apt-get install -y podman containernetworking-plugins slirp4netns
+                        $SUDO apt-get install -y podman slirp4netns
                     elif command -v dnf >/dev/null 2>&1; then
                         $SUDO dnf install -y podman
                     elif command -v yum >/dev/null 2>&1; then
@@ -123,8 +123,11 @@ pipeline {
 
                     cat > "$PODMAN_CONTAINERS_CONF" <<'EOF'
 [network]
-network_backend="cni"
+network_backend="netavark"
 default_rootless_network_cmd="slirp4netns"
+
+[containers]
+netns="host"
 EOF
 
                     $SUDO mkdir -p /dev/net || true
