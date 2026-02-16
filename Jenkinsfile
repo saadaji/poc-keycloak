@@ -67,7 +67,7 @@ pipeline {
                         exit 1
                     fi
 
-                    sudo podman --version
+                    $SUDO podman --version
                 '''
             }
         }
@@ -87,34 +87,58 @@ pipeline {
             environment {
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
                 TESTCONTAINERS_REUSE_ENABLE = 'true'
+                TESTCONTAINERS_CHECKS_DISABLE = 'true'
+                TESTCONTAINERS_HOST_OVERRIDE = '127.0.0.1'
+                TESTCONTAINERS_DOCKER_CLIENT_PROVIDER_STRATEGY = 'org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy'
+                DOCKER_HOST = 'unix:///var/run/docker.sock'
+                TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE = '/var/run/docker.sock'
             }
             steps {
                 sh '''
+                    set -e
 
-                    export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/xdg-runtime-$UID}"
-                    mkdir -p "$XDG_RUNTIME_DIR/podman"
-                    chmod 700 "$XDG_RUNTIME_DIR"
+                    SUDO=""
+                    if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+                        SUDO="sudo"
+                    fi
 
-                    SOCKET_PATH="$XDG_RUNTIME_DIR/podman/podman.sock"
-                    if [ ! -S "$SOCKET_PATH" ]; then
-                        sudo nohup podman system service --time=0 "unix://$SOCKET_PATH" >/tmp/podman-system-service.log 2>&1 &
+                    if [ -z "$SUDO" ] && [ "$(id -u)" -ne 0 ]; then
+                        echo "sudo is required on this Jenkins agent for podman"
+                        exit 1
+                    fi
+
+                    if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+                        echo "Using Docker daemon for Testcontainers"
+                        docker --version
+                        mvn -Dtestcontainers.reuse.enable=true clean test
+                        exit 0
+                    fi
+
+                    echo "Docker daemon unavailable, using sudo podman service on /var/run/docker.sock"
+
+                    SOCKET_PATH="/var/run/docker.sock"
+                    if ! $SUDO test -S "$SOCKET_PATH"; then
+                        $SUDO nohup podman system service --time=0 "unix://$SOCKET_PATH" >/tmp/podman-system-service.log 2>&1 &
                         for i in $(seq 1 20); do
-                            [ -S "$SOCKET_PATH" ] && break
+                            $SUDO test -S "$SOCKET_PATH" && break
                             sleep 1
                         done
                     fi
 
-                    if [ ! -S "$SOCKET_PATH" ]; then
+                    if ! $SUDO test -S "$SOCKET_PATH"; then
                         echo "Podman socket was not created: $SOCKET_PATH"
                         tail -n 100 /tmp/podman-system-service.log || true
                         exit 1
                     fi
 
-                    export DOCKER_HOST="unix://$SOCKET_PATH"
-                    export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="$SOCKET_PATH"
+                    $SUDO chmod 666 "$SOCKET_PATH" || true
 
-                    sudo podman --version
-                    sudo podman info
+                    $SUDO podman --version
+                    $SUDO podman info
+
+                    echo "DOCKER_HOST=$DOCKER_HOST"
+                    echo "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=$TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE"
+                    [ -S "${DOCKER_HOST#unix://}" ] || { echo "Docker socket does not exist"; exit 1; }
 
                     mvn -Dtestcontainers.reuse.enable=true clean test
                 '''
