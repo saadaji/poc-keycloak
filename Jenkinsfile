@@ -86,9 +86,18 @@ pipeline {
                             exit 1
                         fi
 
+                        $SUDO mkdir -p /var/lib/jenkins-docker
                         $SUDO mkdir -p /var/run
                         $SUDO rm -f /var/run/docker.sock || true
-                        $SUDO nohup dockerd --host=unix:///var/run/docker.sock >/tmp/dockerd.log 2>&1 &
+                        $SUDO nohup dockerd \
+                            --host=unix:///var/run/docker.sock \
+                            --data-root=/var/lib/jenkins-docker \
+                            --storage-driver=vfs \
+                            --iptables=false \
+                            --bridge=none \
+                            --ip-masq=false \
+                            --ip-forward=false \
+                            >/tmp/dockerd.log 2>&1 &
 
                         for i in $(seq 1 30); do
                             if $SUDO docker info >/dev/null 2>&1; then
