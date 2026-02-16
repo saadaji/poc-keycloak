@@ -45,8 +45,29 @@ pipeline {
         stage('Install Podman') {
             steps {
                 sh '''
-                    sudo apt-get update
-                    sudo apt-get install -y podman
+                    if command -v podman >/dev/null 2>&1; then
+                        podman --version
+                        exit 0
+                    fi
+
+                    SUDO=""
+                    if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+                        SUDO="sudo"
+                    fi
+
+                    if command -v apt-get >/dev/null 2>&1; then
+                        $SUDO apt-get update
+                        $SUDO apt-get install -y podman
+                    elif command -v dnf >/dev/null 2>&1; then
+                        $SUDO dnf install -y podman
+                    elif command -v yum >/dev/null 2>&1; then
+                        $SUDO yum install -y podman
+                    else
+                        echo "No supported package manager found to install Podman"
+                        exit 1
+                    fi
+
+                    sudo podman --version
                 '''
             }
         }
@@ -65,11 +86,37 @@ pipeline {
         stage('Test') {
             environment {
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
+                TESTCONTAINERS_REUSE_ENABLE = 'true'
             }
             steps {
                 sh '''
+
+                    export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/xdg-runtime-$UID}"
+                    mkdir -p "$XDG_RUNTIME_DIR/podman"
+                    chmod 700 "$XDG_RUNTIME_DIR"
+
+                    SOCKET_PATH="$XDG_RUNTIME_DIR/podman/podman.sock"
+                    if [ ! -S "$SOCKET_PATH" ]; then
+                        sudo nohup podman system service --time=0 "unix://$SOCKET_PATH" >/tmp/podman-system-service.log 2>&1 &
+                        for i in $(seq 1 20); do
+                            [ -S "$SOCKET_PATH" ] && break
+                            sleep 1
+                        done
+                    fi
+
+                    if [ ! -S "$SOCKET_PATH" ]; then
+                        echo "Podman socket was not created: $SOCKET_PATH"
+                        tail -n 100 /tmp/podman-system-service.log || true
+                        exit 1
+                    fi
+
+                    export DOCKER_HOST="unix://$SOCKET_PATH"
+                    export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="$SOCKET_PATH"
+
                     sudo podman --version
-                    mvn clean test
+                    sudo podman info
+
+                    mvn -Dtestcontainers.reuse.enable=true clean test
                 '''
             }
         }
