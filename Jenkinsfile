@@ -42,82 +42,7 @@ pipeline {
             }
         }
 
-        stage('Install Docker') {
-            steps {
-                sh '''
-                    set -e
 
-                    SUDO=""
-                    if [ "$(id -u)" -ne 0 ]; then
-                        if ! command -v sudo >/dev/null 2>&1; then
-                            echo "sudo is required to install docker on this Jenkins agent."
-                            exit 1
-                        fi
-                        SUDO="sudo"
-                    fi
-
-                    if command -v docker >/dev/null 2>&1; then
-                        echo "Docker CLI already installed"
-                    else
-                        if command -v apt-get >/dev/null 2>&1; then
-                            $SUDO apt-get update
-                            $SUDO apt-get install -y docker.io
-                        elif command -v dnf >/dev/null 2>&1; then
-                            $SUDO dnf install -y docker
-                        elif command -v yum >/dev/null 2>&1; then
-                            $SUDO yum install -y docker
-                        else
-                            echo "No supported package manager found to install docker"
-                            exit 1
-                        fi
-                    fi
-
-                    if command -v systemctl >/dev/null 2>&1; then
-                        $SUDO systemctl start docker || true
-                        $SUDO systemctl enable docker || true
-                    elif command -v service >/dev/null 2>&1; then
-                        $SUDO service docker start || true
-                    fi
-
-                    if ! $SUDO docker info >/dev/null 2>&1; then
-                        echo "Docker service manager unavailable or failed; starting dockerd manually"
-                        if ! command -v dockerd >/dev/null 2>&1; then
-                            echo "dockerd binary not found on this Jenkins agent"
-                            exit 1
-                        fi
-
-                        $SUDO mkdir -p /var/lib/jenkins-docker
-                        $SUDO mkdir -p /var/run
-                        $SUDO rm -f /var/run/docker.sock || true
-                        $SUDO nohup dockerd \
-                            --host=unix:///var/run/docker.sock \
-                            --data-root=/var/lib/jenkins-docker \
-                            --storage-driver=vfs \
-                            --iptables=false \
-                            --bridge=none \
-                            --ip-masq=false \
-                            --ip-forward=false \
-                            >/tmp/dockerd.log 2>&1 &
-
-                        for i in $(seq 1 30); do
-                            if $SUDO docker info >/dev/null 2>&1; then
-                                break
-                            fi
-                            sleep 1
-                        done
-                    fi
-
-                    $SUDO docker --version
-                    if ! $SUDO docker info >/dev/null 2>&1; then
-                        echo "Docker daemon could not be started on this Jenkins agent."
-                        tail -n 200 /tmp/dockerd.log || true
-                        exit 1
-                    fi
-
-                    $SUDO chmod 666 /var/run/docker.sock || true
-                '''
-            }
-        }
 
         stage ('Configuration du serveur Artifactory') {
             steps {
@@ -131,57 +56,30 @@ pipeline {
         }
 
         stage('Test') {
+            agent {
+                label 'docker'
+            }
             environment {
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
                 TESTCONTAINERS_REUSE_ENABLE = 'true'
-                TESTCONTAINERS_DOCKER_CLIENT_PROVIDER_STRATEGY = 'org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy'
-                DOCKER_HOST = 'unix:///var/run/docker.sock'
-                TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE = '/var/run/docker.sock'
             }
             steps {
                 sh '''
                     set -e
 
-                    SUDO=""
-                    if [ "$(id -u)" -ne 0 ]; then
-                        if ! command -v sudo >/dev/null 2>&1; then
-                            echo "sudo is required to run docker on this Jenkins agent."
-                            exit 1
-                        fi
-                        SUDO="sudo"
-                    fi
-
                     if ! command -v docker >/dev/null 2>&1; then
-                        echo "Docker CLI is not installed on this Jenkins agent."
+                        echo "ERROR: Docker CLI not found. This stage requires a Jenkins agent with label 'docker' that has Docker preinstalled."
                         exit 1
                     fi
-
-                    if [ ! -S /var/run/docker.sock ]; then
-                        echo "Docker socket /var/run/docker.sock is not available on this Jenkins agent."
-                        exit 1
-                    fi
-
-                    if ! $SUDO docker info >/dev/null 2>&1; then
-                        echo "Docker daemon is not reachable with sudo on this Jenkins agent."
-                        exit 1
-                    fi
-
-                    $SUDO chmod 666 /var/run/docker.sock || true
-
-                    $SUDO docker --version
-                    $SUDO docker info > /dev/null
 
                     if ! docker info >/dev/null 2>&1; then
-                        echo "Docker daemon is reachable with sudo but not by Jenkins user."
-                        ls -l /var/run/docker.sock || true
+                        echo "ERROR: Docker daemon not accessible. Ensure the agent has a working Docker daemon and socket permissions."
                         exit 1
                     fi
 
-                    DOCKER_HOST="unix:///var/run/docker.sock" \
-                    TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/var/run/docker.sock" \
-                    TESTCONTAINERS_DOCKER_CLIENT_PROVIDER_STRATEGY="org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy" \
-                    TESTCONTAINERS_RYUK_DISABLED="true" \
-                    TESTCONTAINERS_REUSE_ENABLE="true" \
+                    docker --version
+                    docker info
+
                     mvn -Dtestcontainers.reuse.enable=true clean test
                 '''
             }
