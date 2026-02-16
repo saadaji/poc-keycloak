@@ -119,13 +119,27 @@ pipeline {
                     SOCKET_PATH="/var/run/docker.sock"
                     PODMAN_ROOT="/var/tmp/jenkins-podman-root"
                     PODMAN_RUNROOT="/var/tmp/jenkins-podman-runroot"
+                    PODMAN_CONTAINERS_CONF="/tmp/jenkins-podman-containers.conf"
+
+                    cat > "$PODMAN_CONTAINERS_CONF" <<'EOF'
+[network]
+default_rootless_network_cmd="slirp4netns"
+EOF
+
+                    $SUDO mkdir -p /dev/net || true
+                    $SUDO modprobe tun || true
+                    if ! $SUDO test -c /dev/net/tun; then
+                        $SUDO mknod /dev/net/tun c 10 200 || true
+                    fi
+                    $SUDO chmod 666 /dev/net/tun || true
+
                     $SUDO mkdir -p "$PODMAN_ROOT" "$PODMAN_RUNROOT"
 
                     $SUDO pkill -f "podman system service.*$SOCKET_PATH" || true
                     $SUDO rm -f "$SOCKET_PATH" || true
 
                     if ! $SUDO test -S "$SOCKET_PATH"; then
-                        $SUDO nohup podman --storage-driver=vfs --root "$PODMAN_ROOT" --runroot "$PODMAN_RUNROOT" system service --time=0 "unix://$SOCKET_PATH" >/tmp/podman-system-service.log 2>&1 &
+                        $SUDO env CONTAINERS_CONF="$PODMAN_CONTAINERS_CONF" nohup podman --storage-driver=vfs --root "$PODMAN_ROOT" --runroot "$PODMAN_RUNROOT" system service --time=0 "unix://$SOCKET_PATH" >/tmp/podman-system-service.log 2>&1 &
                         for i in $(seq 1 20); do
                             $SUDO test -S "$SOCKET_PATH" && break
                             sleep 1
@@ -141,7 +155,7 @@ pipeline {
                     $SUDO chmod 666 "$SOCKET_PATH" || true
 
                     $SUDO podman --version
-                    $SUDO podman --storage-driver=vfs --root "$PODMAN_ROOT" --runroot "$PODMAN_RUNROOT" info
+                    $SUDO env CONTAINERS_CONF="$PODMAN_CONTAINERS_CONF" podman --storage-driver=vfs --root "$PODMAN_ROOT" --runroot "$PODMAN_RUNROOT" info
 
                     echo "DOCKER_HOST=$DOCKER_HOST"
                     echo "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=$TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE"
