@@ -117,8 +117,15 @@ pipeline {
                     echo "Docker daemon unavailable, using sudo podman service on /var/run/docker.sock"
 
                     SOCKET_PATH="/var/run/docker.sock"
+                    PODMAN_ROOT="/var/tmp/jenkins-podman-root"
+                    PODMAN_RUNROOT="/var/tmp/jenkins-podman-runroot"
+                    $SUDO mkdir -p "$PODMAN_ROOT" "$PODMAN_RUNROOT"
+
+                    $SUDO pkill -f "podman system service.*$SOCKET_PATH" || true
+                    $SUDO rm -f "$SOCKET_PATH" || true
+
                     if ! $SUDO test -S "$SOCKET_PATH"; then
-                        $SUDO nohup podman system service --time=0 "unix://$SOCKET_PATH" >/tmp/podman-system-service.log 2>&1 &
+                        $SUDO nohup podman --storage-driver=vfs --root "$PODMAN_ROOT" --runroot "$PODMAN_RUNROOT" system service --time=0 "unix://$SOCKET_PATH" >/tmp/podman-system-service.log 2>&1 &
                         for i in $(seq 1 20); do
                             $SUDO test -S "$SOCKET_PATH" && break
                             sleep 1
@@ -134,7 +141,7 @@ pipeline {
                     $SUDO chmod 666 "$SOCKET_PATH" || true
 
                     $SUDO podman --version
-                    $SUDO podman info
+                    $SUDO podman --storage-driver=vfs --root "$PODMAN_ROOT" --runroot "$PODMAN_RUNROOT" info
 
                     echo "DOCKER_HOST=$DOCKER_HOST"
                     echo "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=$TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE"
