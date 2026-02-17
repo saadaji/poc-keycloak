@@ -177,8 +177,9 @@ EOF
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
                 TESTCONTAINERS_REUSE_ENABLE = 'true'
                 DOCKER_HOST = 'unix:///var/run/docker.sock'
-                CONTAINERS_CONF = '/tmp/podman-jenkins.conf'
+                CONTAINERS_CONF = '/etc/containers/containers.conf'
                 NETAVARK_DISABLE_ROUTE_LOCALNET = '1'
+                TESTCONTAINERS_HOST_OVERRIDE = 'host.containers.internal'
             }
             steps {
                 sh '''
@@ -194,15 +195,18 @@ EOF
                     echo "Docker-compatible socket found, running tests..."
                     ls -l /var/run/docker.sock
                     
-                    echo "Ensuring Podman uses slirp4netns for all containers..."
-                    export CONTAINERS_CONF=/tmp/podman-jenkins.conf
+                    echo "Ensuring Podman uses host networking to avoid sysctl issues..."
+                    export CONTAINERS_CONF=/etc/containers/containers.conf
                     export NETAVARK_DISABLE_ROUTE_LOCALNET=1
                     
-                    cat /tmp/podman-jenkins.conf
+                    cat /etc/containers/containers.conf
 
-                    mvn -Dtestcontainers.reuse.enable=true clean test || {
+                    mvn -Dtestcontainers.reuse.enable=true \
+                        -Dtestcontainers.host.override=host.containers.internal \
+                        clean test || {
                         echo "WARN: Tests failed - this may be due to container runtime restrictions on this agent"
-                        echo "Consider running tests on a Docker-capable agent or skipping Testcontainers tests"
+                        echo "Podman service log:"
+                        tail -n 50 /tmp/podman-service.log 2>/dev/null || true
                         exit 1
                     }
                 '''
