@@ -89,7 +89,6 @@ default_network="none"
 netns="host"
 userns="host"
 ipcns="host"
-pidns="host"
 cgroupns="host"
 default_sysctls = []
 no_pivot_root = true
@@ -153,7 +152,6 @@ EOF
                     echo "Creating a test container to verify setup..."
                     podman --remote --url "unix://$SOCKET_PATH" run --rm \
                         --network=host \
-                        --pid=host \
                         --cgroupns=host \
                         --cgroups=disabled \
                         alpine echo "Network test successful" || {
