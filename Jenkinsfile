@@ -94,6 +94,10 @@ pidns="host"
 utsns="host"
 default_sysctls = []
 no_pivot_root = true
+label = false
+seccomp_profile = "unconfined"
+apparmor_profile = "unconfined"
+unmask = ["ALL"]
 
 [engine]
 events_logger="file"
@@ -148,6 +152,19 @@ EOF
                         echo "WARNING: Podman service may not be fully ready"
                         tail -n 20 /tmp/podman-service.log 2>/dev/null || true
                     fi
+                    
+                    echo "Testing container with unmask and security options..."
+                    podman --remote --url "unix://$SOCKET_PATH" run --rm \
+                        --network=host \
+                        --security-opt unmask=ALL \
+                        --security-opt label=disable \
+                        --security-opt seccomp=unconfined \
+                        --security-opt apparmor=unconfined \
+                        alpine echo "Container test successful!" || {
+                        echo "WARNING: Test container failed"
+                        tail -n 50 /tmp/podman-service.log 2>/dev/null || true
+                        echo "Continuing anyway..."
+                    }
                 '''
             }
         }
@@ -195,11 +212,13 @@ EOF
                             
                             echo "Podman configuration:"
                             cat /etc/containers/containers.conf
+                            
+                            echo "Running tests with security relaxed settings..."
+                            export CONTAINERS_CONF=/etc/containers/containers.conf
+                            export NETAVARK_DISABLE_ROUTE_LOCALNET=1
 
                             mvn -Dtestcontainers.reuse.enable=true \
-                                -Dtestcontainers.host.override=host.containers.internal \
-                                -Dtestcontainers.container.network.mode=host \
-                                clean test
+                                -Dtestcontainers.host.override=host.containers.internal clean test
                         '''
                     } catch (Exception e) {
                         echo "WARN: Tests failed with error: ${e.message}"
