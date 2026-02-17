@@ -217,8 +217,12 @@ EOF
                             export CONTAINERS_CONF=/etc/containers/containers.conf
                             export NETAVARK_DISABLE_ROUTE_LOCALNET=1
 
-                            mvn -Dtestcontainers.reuse.enable=true \
-                                -Dtestcontainers.host.override=host.containers.internal clean test
+                            mvn -pl keycloak-test \
+                                -Dtestcontainers.reuse.enable=true \
+                                -Dtestcontainers.host.override=host.containers.internal \
+                                -Dmaven.test.skip=false \
+                                -DskipTests=false \
+                                clean test
                         '''
                     } catch (Exception e) {
                         echo "WARN: Tests failed with error: ${e.message}"
