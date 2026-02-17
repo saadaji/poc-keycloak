@@ -82,8 +82,7 @@ pipeline {
                     
                     cat > /tmp/podman-jenkins.conf <<'EOF'
 [network]
-network_backend="netavark"
-default_network="host"
+network_backend="slirp4netns"
 
 [containers]
 netns="host"
@@ -95,8 +94,11 @@ cgroup_manager="cgroupfs"
 events_logger="file"
 EOF
                     
+                    echo "Attempting to set sysctl for route_localnet (may fail in restricted environments)..."
+                    sudo sysctl -w net.ipv4.conf.all.route_localnet=1 2>/dev/null || echo "Could not set route_localnet - continuing with slirp4netns"
+                    
                     echo "Starting Podman service..."
-                    sudo env CONTAINERS_CONF=/tmp/podman-jenkins.conf nohup podman \
+                    sudo env CONTAINERS_CONF=/tmp/podman-jenkins.conf NETAVARK_DISABLE_ROUTE_LOCALNET=1 nohup podman \
                         --storage-driver=vfs \
                         --root "$PODMAN_ROOT" \
                         --runroot "$PODMAN_RUNROOT" \
