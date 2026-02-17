@@ -22,6 +22,7 @@ services:
   
   keycloak-x-1:
     image: keycloak-26
+    privileged: true
     environment:
       KC_HOSTNAME_STRICT: false
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
