@@ -82,8 +82,8 @@ pipeline {
                     
                     cat > /tmp/podman-jenkins.conf <<'EOF'
 [network]
-network_backend="slirp4netns"
-default_network="slirp4netns"
+network_backend="netavark"
+default_network="none"
 
 [containers]
 netns="host"
@@ -114,12 +114,10 @@ EOF
                     echo "Starting Podman service..."
                     sudo env CONTAINERS_CONF=/etc/containers/containers.conf \
                         NETAVARK_DISABLE_ROUTE_LOCALNET=1 \
-                        DISABLE_DNS=true \
                         nohup podman \
                         --storage-driver=vfs \
                         --root "$PODMAN_ROOT" \
                         --runroot "$PODMAN_RUNROOT" \
-                        --network-backend=slirp4netns \
                         system service --time=0 "unix://$SOCKET_PATH" \
                         >/tmp/podman-service.log 2>&1 &
                     
