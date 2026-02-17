@@ -89,18 +89,21 @@ default_network="none"
 netns="host"
 userns="host"
 ipcns="host"
+pidns="host"
+cgroupns="host"
 default_sysctls = []
 no_pivot_root = true
+cgroups="disabled"
 
 [engine]
-cgroup_manager="cgroupfs"
+cgroup_manager="disabled"
 events_logger="file"
 runtime = "crun"
 stop_timeout = 10
 
 [engine.runtimes]
-crun = ["/usr/bin/crun"]
-runc = ["/usr/bin/runc"]
+crun = ["/usr/bin/crun", "--systemd-cgroup=false"]
+runc = ["/usr/bin/runc", "--systemd-cgroup=false"]
 EOF
                     
                     # Also create it in system location
@@ -147,9 +150,16 @@ EOF
                         tail -n 20 /tmp/podman-service.log 2>/dev/null || true
                     fi
                     
-                    echo "Creating a test container to verify networking..."
-                    podman --remote --url "unix://$SOCKET_PATH" run --rm --network=host alpine echo "Network test successful" || {
-                        echo "WARNING: Test container failed, but continuing..."
+                    echo "Creating a test container to verify setup..."
+                    podman --remote --url "unix://$SOCKET_PATH" run --rm \
+                        --network=host \
+                        --pid=host \
+                        --cgroupns=host \
+                        --cgroups=disabled \
+                        alpine echo "Network test successful" || {
+                        echo "WARNING: Test container failed"
+                        tail -n 50 /tmp/podman-service.log 2>/dev/null || true
+                        echo "Continuing anyway..."
                     }
                 '''
             }
@@ -180,6 +190,7 @@ EOF
                 CONTAINERS_CONF = '/etc/containers/containers.conf'
                 NETAVARK_DISABLE_ROUTE_LOCALNET = '1'
                 TESTCONTAINERS_HOST_OVERRIDE = 'host.containers.internal'
+                TESTCONTAINERS_DOCKER_RAW_MODE = 'true'
             }
             steps {
                 sh '''
@@ -203,6 +214,8 @@ EOF
 
                     mvn -Dtestcontainers.reuse.enable=true \
                         -Dtestcontainers.host.override=host.containers.internal \
+                        -Dtestcontainers.container.network.mode=host \
+                        -Dtestcontainers.container.privileged=false \
                         clean test || {
                         echo "WARN: Tests failed - this may be due to container runtime restrictions on this agent"
                         echo "Podman service log:"
