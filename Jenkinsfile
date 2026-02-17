@@ -144,8 +144,8 @@ EOF
         stage('Test') {
             when {
                 expression {
-                    // Only run tests if we have a working container runtime
-                    return fileExists('/var/run/docker.sock') && sh(script: 'docker info >/dev/null 2>&1', returnStatus: true) == 0
+                    // Only run tests if we have a working container runtime (Docker or Podman)
+                    return fileExists('/var/run/docker.sock') && sh(script: 'podman --remote --url unix:///var/run/docker.sock info >/dev/null 2>&1', returnStatus: true) == 0
                 }
             }
             environment {
