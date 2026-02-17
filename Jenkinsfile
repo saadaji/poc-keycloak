@@ -83,25 +83,43 @@ pipeline {
                     cat > /tmp/podman-jenkins.conf <<'EOF'
 [network]
 network_backend="slirp4netns"
+default_network="slirp4netns"
 
 [containers]
 netns="host"
 userns="host"
+ipcns="host"
 default_sysctls = []
+no_pivot_root = true
 
 [engine]
 cgroup_manager="cgroupfs"
 events_logger="file"
+runtime = "crun"
+stop_timeout = 10
+
+[engine.runtimes]
+crun = ["/usr/bin/crun"]
+runc = ["/usr/bin/runc"]
 EOF
+                    
+                    # Also create it in system location
+                    sudo mkdir -p /etc/containers
+                    sudo cp /tmp/podman-jenkins.conf /etc/containers/containers.conf
                     
                     echo "Attempting to set sysctl for route_localnet (may fail in restricted environments)..."
                     sudo sysctl -w net.ipv4.conf.all.route_localnet=1 2>/dev/null || echo "Could not set route_localnet - continuing with slirp4netns"
+                    sudo sysctl -w net.ipv4.ip_forward=1 2>/dev/null || echo "Could not set ip_forward"
                     
                     echo "Starting Podman service..."
-                    sudo env CONTAINERS_CONF=/tmp/podman-jenkins.conf NETAVARK_DISABLE_ROUTE_LOCALNET=1 nohup podman \
+                    sudo env CONTAINERS_CONF=/etc/containers/containers.conf \
+                        NETAVARK_DISABLE_ROUTE_LOCALNET=1 \
+                        DISABLE_DNS=true \
+                        nohup podman \
                         --storage-driver=vfs \
                         --root "$PODMAN_ROOT" \
                         --runroot "$PODMAN_RUNROOT" \
+                        --network-backend=slirp4netns \
                         system service --time=0 "unix://$SOCKET_PATH" \
                         >/tmp/podman-service.log 2>&1 &
                     
@@ -124,10 +142,17 @@ EOF
                     echo "Testing Podman connection..."
                     if podman --remote --url "unix://$SOCKET_PATH" info >/dev/null 2>&1; then
                         echo "Podman service is ready"
+                        echo "Verifying network backend configuration..."
+                        podman --remote --url "unix://$SOCKET_PATH" info | grep -i network || true
                     else
                         echo "WARNING: Podman service may not be fully ready"
                         tail -n 20 /tmp/podman-service.log 2>/dev/null || true
                     fi
+                    
+                    echo "Creating a test container to verify networking..."
+                    podman --remote --url "unix://$SOCKET_PATH" run --rm --network=host alpine echo "Network test successful" || {
+                        echo "WARNING: Test container failed, but continuing..."
+                    }
                 '''
             }
         }
@@ -154,6 +179,8 @@ EOF
                 TESTCONTAINERS_RYUK_DISABLED = 'true'
                 TESTCONTAINERS_REUSE_ENABLE = 'true'
                 DOCKER_HOST = 'unix:///var/run/docker.sock'
+                CONTAINERS_CONF = '/tmp/podman-jenkins.conf'
+                NETAVARK_DISABLE_ROUTE_LOCALNET = '1'
             }
             steps {
                 sh '''
@@ -168,6 +195,12 @@ EOF
 
                     echo "Docker-compatible socket found, running tests..."
                     ls -l /var/run/docker.sock
+                    
+                    echo "Ensuring Podman uses slirp4netns for all containers..."
+                    export CONTAINERS_CONF=/tmp/podman-jenkins.conf
+                    export NETAVARK_DISABLE_ROUTE_LOCALNET=1
+                    
+                    cat /tmp/podman-jenkins.conf
 
                     mvn -Dtestcontainers.reuse.enable=true clean test || {
                         echo "WARN: Tests failed - this may be due to container runtime restrictions on this agent"
