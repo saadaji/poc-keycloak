@@ -50,7 +50,10 @@ ENV KC_CACHE=ispn
 ENV KC_CACHE_STACK=jdbc-ping-vef
 ENV KC_CACHE_CONFIG_FILE=custom-caches-jgroups.xml
 
-ENV KC_METRICS_ENABLED=true
+#Lastlogin SPI
+KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ATTRIBUTE=last_login
+KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ZONE_ID=Europe/Paris
+KC_SPI_EVENTS_LISTENER_LAST_LOGIN_PATTERN=dd.MM.yyyy HH:mm:ss
 
 #COPY keycloak folder from image builder
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
@@ -62,5 +65,3 @@ RUN echo "net.core.rmem_max=25600000" > /etc/sysctl.conf
 RUN echo "net.core.wmem_max=1024000" >> /etc/sysctl.conf
 
 USER keycloak
-
-
