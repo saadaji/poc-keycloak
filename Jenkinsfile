@@ -9,20 +9,6 @@ pipeline {
    triggers { pollSCM 'H/2 * * * *' } // poll every 2 mins
  
    stages {
-       stage('Checkout Submodules') {
-           steps {
-               script {
-                   // Clone keycloak-email-otp-authenticator if it doesn't exist or is empty
-                   sh '''
-                       if [ ! -d "keycloak-email-otp-authenticator/.git" ]; then
-                           echo "Cloning keycloak-email-otp-authenticator..."
-                           rm -rf keycloak-email-otp-authenticator
-                           git clone <REPOSITORY_URL> keycloak-email-otp-authenticator
-                       fi
-                   '''
-               }
-           }
-       }
        stage('Build and Test') {
            steps {
                sh 'mvn clean install'
