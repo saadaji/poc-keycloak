@@ -1,7 +1,7 @@
 pipeline {
    agent {
        docker {
-             image 'eclipse-temurin:17.0.9_9-jdk-jammy'
+             image 'maven:3.9.5-eclipse-temurin-17'
              args '--network host -u root -v /var/run/docker.sock:/var/run/docker.sock'
        }
  }
