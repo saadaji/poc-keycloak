@@ -49,7 +49,7 @@ pipeline {
                }
            }
        }
-        stage('Docker Image Build') {
+       stage('Docker Image Build') {
             steps {
                 script{
                     def TAG_VERSION = env.TAG_NAME
