@@ -40,6 +40,27 @@ pipeline {
    }
  
    stages {
+
+        stage('Debug') {
+            steps {
+                echo "BRANCH_NAME = ${env.BRANCH_NAME}"
+                echo "TAG_NAME =  ${env.TAG_NAME}"
+            }
+        }
+
+        stage('Prepare environment') {
+            steps {
+                script {
+                    // variables used to build an deploy dockerfiles to ecr repositories
+                    AWS_REGION = 'eu-west-3'
+                    AWS_USER_ACCOUNT = "jenkins_techlead_dev"
+                    //AWS_ACCOUNT = "529031532506"
+                    //ECR_AWS_ACCOUNT = "873168974321"
+                    //AWS_ROLE = "PATRIMOINE_SYSOPS_PRI"
+                    keycloak_vef_codebuild_project_name = "keycloak-vef-registry-prd"
+                }
+            }
+        }
        stage('Build and Test') {
            steps {
                container('java21') {
