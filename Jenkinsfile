@@ -50,16 +50,24 @@ pipeline {
            }
        }
         stage('Docker Image Build') {
-            when {
-                expression { return env.TAG_NAME }
-            }
             steps {
                 script{
-                    echo "TAG_NAME =  ${env.TAG_NAME }"
+                    def TAG_VERSION = env.TAG_NAME
+                    
+                    if (!TAG_VERSION) {
+                        TAG_VERSION = input(
+                            message: 'Enter tag name for Docker image build:',
+                            parameters: [
+                                string(name: 'TAG', defaultValue: '', description: 'Docker image tag')
+                            ]
+                        )
+                    }
+                    
+                    echo "TAG_NAME = ${TAG_VERSION}"
 
                     withAWS(credentials: "${AWS_USER_ACCOUNT}"){
                         echo keycloak_vef_codebuild_project_name
-                        awsCodeBuild projectName: "${keycloak_vef_codebuild_project_name}", region: "${AWS_REGION}", sourceControlType: 'jenkins', credentialsType: 'keys', envVariables: "[{TAG, $env.TAG_NAME }]"
+                        awsCodeBuild projectName: "${keycloak_vef_codebuild_project_name}", region: "${AWS_REGION}", sourceControlType: 'jenkins', credentialsType: 'keys', envVariables: "[{TAG, ${TAG_VERSION}}]"
                     }
                 }
             }
