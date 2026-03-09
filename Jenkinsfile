@@ -34,9 +34,18 @@ pipeline {
            yaml pod
        }
    }
+
+   options {
+        buildDiscarder(logRotator(numToKeepStr: '15'))
+        disableConcurrentBuilds()
+        timeout(time: 60, unit: 'MINUTES')
+    }
+
    environment {
        DOCKER_HOST = 'tcp://localhost:2375'
        DOCKER_TLS_VERIFY = 0
+       ARTIFACTORY_SERVER = "Artifactory"
+       ARTIFACTORY_CREDENTIALS = "technique-plf-keycloak"
    }
  
    stages {
@@ -61,6 +70,18 @@ pipeline {
                 }
             }
         }
+
+        stage ('Configuration du serveur Artifactory') {
+            steps {
+                rtServer (
+                    id: "${env.ARTIFACTORY_SERVER}",
+                    url: 'https://artifactory.istefr.fr/artifactory',
+                    credentialsId: "${env.ARTIFACTORY_CREDENTIALS}",
+                    timeout: 300
+                )
+            }
+        }
+
        stage('Build and Test') {
            steps {
                container('java21') {
