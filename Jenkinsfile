@@ -44,8 +44,6 @@ pipeline {
    environment {
        DOCKER_HOST = 'tcp://localhost:2375'
        DOCKER_TLS_VERIFY = 0
-       ARTIFACTORY_SERVER = "Artifactory"
-       ARTIFACTORY_CREDENTIALS = "technique-plf-keycloak"
    }
  
    stages {
@@ -68,17 +66,6 @@ pipeline {
                     //AWS_ROLE = "PATRIMOINE_SYSOPS_PRI"
                     keycloak_vef_codebuild_project_name = "keycloak-vef-registry-prd"
                 }
-            }
-        }
-
-        stage ('Configuration du serveur Artifactory') {
-            steps {
-                rtServer (
-                    id: "${env.ARTIFACTORY_SERVER}",
-                    url: 'https://artifactory.istefr.fr/artifactory',
-                    credentialsId: "${env.ARTIFACTORY_CREDENTIALS}",
-                    timeout: 300
-                )
             }
         }
 

@@ -51,9 +51,9 @@ ENV KC_CACHE_STACK=jdbc-ping-vef
 ENV KC_CACHE_CONFIG_FILE=custom-caches-jgroups.xml
 
 #Lastlogin SPI
-ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ATTRIBUTE=last_login
-ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ZONE_ID=Europe/Paris
-ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_PATTERN=dd.MM.yyyy HH:mm:ss
+ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ATTRIBUTE="last_login"
+ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ZONE_ID="Europe/Paris"
+ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_PATTERN="dd.MM.yyyy HH:mm:ss"
 
 #COPY keycloak folder from image builder
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
