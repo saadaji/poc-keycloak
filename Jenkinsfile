@@ -44,7 +44,7 @@ pipeline {
            steps {
                container('java21') {
                    script {
-                       sh "./mvnw verify"
+                       sh "mvn clean install"
                    }
                }
            }
