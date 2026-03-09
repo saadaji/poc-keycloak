@@ -9,7 +9,7 @@ spec:
  serviceAccountName: jenkins
  containers:
    - name: java21
-     image: eclipse-temurin:21-jdk-jammy
+     image: maven:3.9-eclipse-temurin-21
      resources:
        requests:
          cpu: "1000m"
