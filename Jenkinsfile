@@ -49,21 +49,20 @@ pipeline {
                }
            }
        }
-   }
+        stage('Docker Image Build') {
+            when {
+                expression { return env.TAG_NAME }
+            }
+            steps {
+                script{
+                    echo "TAG_NAME =  ${env.TAG_NAME }"
 
-   stage('Docker Image Build') {
-        when {
-            expression { return env.TAG_NAME }
-        }
-        steps {
-            script{
-                echo "TAG_NAME =  ${env.TAG_NAME }"
-
-                withAWS(credentials: "${AWS_USER_ACCOUNT}"){
-                    echo keycloak_vef_codebuild_project_name
-                    awsCodeBuild projectName: "${keycloak_vef_codebuild_project_name}", region: "${AWS_REGION}", sourceControlType: 'jenkins', credentialsType: 'keys', envVariables: "[{TAG, $env.TAG_NAME }]"
+                    withAWS(credentials: "${AWS_USER_ACCOUNT}"){
+                        echo keycloak_vef_codebuild_project_name
+                        awsCodeBuild projectName: "${keycloak_vef_codebuild_project_name}", region: "${AWS_REGION}", sourceControlType: 'jenkins', credentialsType: 'keys', envVariables: "[{TAG, $env.TAG_NAME }]"
+                    }
                 }
             }
         }
-    }
+   }
 }
