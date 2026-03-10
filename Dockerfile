@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:26.4.7 AS builder
+FROM quay.io/keycloak/keycloak:26.5.5 AS builder
 
 #### Env build options #####
 #DB
@@ -26,7 +26,7 @@ RUN keytool -genkeypair -storepass password -storetype PKCS12 -keyalg RSA -keysi
 
 RUN /opt/keycloak/bin/kc.sh build --verbose
 
-FROM quay.io/keycloak/keycloak:26.4.7
+FROM quay.io/keycloak/keycloak:26.5.5
 
 #### Env config #####
 #HTTP
@@ -49,6 +49,11 @@ ENV QUARKUS_HTTP_LIMITS_MAX_FORM_ATTRIBUTE_SIZE=1M
 ENV KC_CACHE=ispn
 ENV KC_CACHE_STACK=jdbc-ping-vef
 ENV KC_CACHE_CONFIG_FILE=custom-caches-jgroups.xml
+
+#Log level
+ENV KC_LOG_LEVEL=INFO
+ENV KC_LOG_CONSOLE_LEVEL=INFO
+ENV KC_LOG_CONSOLE_OUTPUT=json
 
 #Lastlogin SPI
 ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ATTRIBUTE="last_login"

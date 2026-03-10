@@ -64,7 +64,7 @@
         <metrics gauges="true"
                  histograms="true" />
         <!-- stack reference to custom jgroups stack -->
-        <transport lock-timeout="60000" stack="jdbc-ping"/>
+        <transport lock-timeout="60000" stack="jdbc-ping-vef"/>
 
         <local-cache name="realms" statistics="true">
             <encoding>
@@ -82,21 +82,27 @@
         </local-cache>
         <distributed-cache name="sessions" owners="${env.CACHE_OWNERS_COUNT:2}" statistics="true">
             <expiration lifespan="-1"/>
+            <memory storage="HEAP" max-count="${env.CACHE_SESSIONS_SIZE:10000}"/>
         </distributed-cache>
         <distributed-cache name="authenticationSessions" owners="${env.CACHE_OWNERS_AUTH_SESSIONS_COUNT:1}" statistics="true">
             <expiration lifespan="-1"/>
+            <memory storage="HEAP" max-count="${env.CACHE_AUTH_SESSIONS_SIZE:10000}"/>
         </distributed-cache>
         <distributed-cache name="offlineSessions" owners="${env.CACHE_OWNERS_COUNT:2}" statistics="true">
             <expiration lifespan="-1"/>
+            <memory storage="HEAP" max-count="${env.CACHE_OFFLINE_SESSIONS_SIZE:10000}"/>
         </distributed-cache>
         <distributed-cache name="clientSessions" owners="${env.CACHE_OWNERS_COUNT:2}" statistics="true">
             <expiration lifespan="-1"/>
+            <memory storage="HEAP" max-count="${env.CACHE_CLIENT_SESSIONS_SIZE:10000}"/>
         </distributed-cache>
         <distributed-cache name="offlineClientSessions" owners="${env.CACHE_OWNERS_COUNT:1}" statistics="true">
             <expiration lifespan="-1"/>
+            <memory storage="HEAP" max-count="${env.CACHE_OFFLINE_CLIENT_SESSIONS_SIZE:10000}"/>
         </distributed-cache>
         <distributed-cache name="loginFailures" owners="${env.CACHE_OWNERS_COUNT:1}" statistics="true">
             <expiration lifespan="-1"/>
+            <memory storage="HEAP" max-count="${env.CACHE_LOGIN_FAILURES_SIZE:10000}"/>
         </distributed-cache>
         <local-cache name="authorization" statistics="true">
             <encoding>
@@ -122,7 +128,7 @@
                 <value media-type="application/x-java-object"/>
             </encoding>
             <expiration max-idle="-1" lifespan="-1" interval="300000"/>
-            <memory storage="HEAP" max-count="-1"/>
+            <memory storage="HEAP" max-count="${env.CACHE_ACTION_TOKENS_SIZE:10000}"/>
         </distributed-cache>
     </cache-container>
 </infinispan>

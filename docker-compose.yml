@@ -42,6 +42,10 @@ services:
       KC_LOG_FORMAT: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"
       KC_LOG_LEVEL: "INFO"
       SCIM_AUTHENTICATION_MODE: "KEYCLOAK"
+      # Enable metrics
+      KC_METRICS_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      #KC_METRICS_CACHE_ENABLED: true 
         #KC_HTTP_METRICS_SLOS: true
         #KC_CACHE_METRICS_HISTOGRAMS_ENABLED: true
         #KC_HTTP_METRICS_HISTOGRAMS_ENABLED: true
@@ -52,8 +56,6 @@ services:
       - "7800:7800"
       - "9000:9000"
     volumes:
-      #- ./custom-caches-jgroups.xml:/opt/keycloak/conf/custom-caches-jgroups.xml:z
-        #./keycloak-integrations/:/opt/keycloak/providers/:z
       - ./data/:/data:z
     depends_on:
       - keycloak-x-db
