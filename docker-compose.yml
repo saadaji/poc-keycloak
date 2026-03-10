@@ -58,7 +58,8 @@ services:
     volumes:
       - ./data/:/data:z
     depends_on:
-      - keycloak-x-db
+      keycloak-x-db:
+        condition: service_healthy
     networks:
       - keycloak-internal
 

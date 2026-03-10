@@ -81,7 +81,7 @@
                                 <resource>
                                     <directory>${project.parent.basedir}/keycloak-2fa-sms/target</directory>
                                     <includes>
-                                        <include>dasniko.keycloak-2fa-sms-authenticator.jar</include>
+                                        <include>keycloak-2fa-sms-authenticator-*.jar</include>
                                     </includes>
                                     <excludes>
                                         <exclude>**/*-javadoc.jar</exclude>
