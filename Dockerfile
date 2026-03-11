@@ -17,6 +17,11 @@ ENV KC_EVENT_METRICS_USER_ENABLED=true
 COPY keycloak-image/conf /opt/keycloak/conf
 # Install custom providers
 COPY keycloak-image/providers /opt/keycloak/providers
+RUN echo "========== Contents of /opt/keycloak/providers ==========" && \
+    ls -la /opt/keycloak/providers && \
+    echo "=========================================================="
+
+
 
 HEALTHCHECK NONE
 
