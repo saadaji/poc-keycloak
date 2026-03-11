@@ -17,11 +17,6 @@ ENV KC_EVENT_METRICS_USER_ENABLED=true
 COPY keycloak-image/conf /opt/keycloak/conf
 # Install custom providers
 COPY keycloak-image/providers /opt/keycloak/providers
-RUN echo "========== Contents of /opt/keycloak/providers ==========" && \
-    ls -la /opt/keycloak/providers && \
-    echo "=========================================================="
-
-
 
 HEALTHCHECK NONE
 
@@ -73,5 +68,7 @@ USER root
 RUN chown -Rf keycloak:keycloak /opt/keycloak
 RUN echo "net.core.rmem_max=25600000" > /etc/sysctl.conf
 RUN echo "net.core.wmem_max=1024000" >> /etc/sysctl.conf
+
+
 
 USER keycloak

@@ -23,7 +23,7 @@ public class EmailOTPAuthenticatorFactory implements AuthenticatorFactory {
 
   @Override
   public String getId() {
-    return "emailotp-authenticator";
+    return "email-authenticator";
   }
 
   @Override
