@@ -13,10 +13,10 @@
     "types": [ "account" ]
   }, {
     "name" : "securise",
-    "types": [ "account" ]
+    "types": [ "account","email","login"]
   }, {
     "name" : "veolia",
-    "types": [ "account", "login", "email" ]
+    "types": [ "account", "login" ]
   }, {
     "name" : "veolia_vwis",
     "types": [ "login" ]

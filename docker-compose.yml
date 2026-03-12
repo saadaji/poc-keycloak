@@ -21,7 +21,7 @@ services:
       retries: 5
   
   keycloak-x-1:
-    image: 873168974321.dkr.ecr.eu-west-3.amazonaws.com/keycloak-vef-registry:26.5.5.1-SNAPSHOT
+    image: keycloak-26
     privileged: true
     environment:
       KC_HOSTNAME_STRICT: false
