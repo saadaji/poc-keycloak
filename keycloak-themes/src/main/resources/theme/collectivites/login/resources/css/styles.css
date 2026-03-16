@@ -98,8 +98,9 @@ header .navbar {
 }
 
 .login-pf body {
-    background: url('../img/hubgrade_logo.jpg')  no-repeat center center fixed;
-    background-position-y: 10px;
+    background: url('../img/hubgrade_resize03.jpg')  no-repeat center center fixed;
+    background-position-y: -200px;
+    background-repeat: repeat;
     background-size: cover;
 
     margin: 0;
@@ -108,8 +109,6 @@ header .navbar {
     font-size: small;
     font-style: normal;
     line-height: 32px;
-
-#    background: #ddd;
     height: 100%;
 }
 

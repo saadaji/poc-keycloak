@@ -69,9 +69,9 @@
                                     </excludes>
                                 </resource>
                                 <resource>
-                                    <directory>${project.parent.basedir}/keycloak-email-otp-authenticator/target</directory>
+                                    <directory>${project.parent.basedir}/keycloak-2fa-email-authenticator/target</directory>
                                     <includes>
-                                        <include>keycloak-email-otp-authenticator-*.jar</include>
+                                        <include>keycloak-2fa-email-authenticator-*.jar</include>
                                     </includes>
                                     <excludes>
                                         <exclude>**/*-javadoc.jar</exclude>
