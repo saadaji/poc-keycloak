@@ -64,15 +64,9 @@ public class EmailAuthenticatorCredentialProvider
 
     @Override
     public CredentialTypeMetadata getCredentialTypeMetadata(CredentialTypeMetadataContext context) {
-        return CredentialTypeMetadata.builder()
-                .type(getType())
-                .category(CredentialTypeMetadata.Category.TWO_FACTOR)
-                .displayName("email-authenticator-display-name")
-                .helpText("email-authenticator-help-text")
-                .iconCssClass("kcAuthenticatorEmailClass")
-                .createAction(EmailAuthenticatorRequiredAction.PROVIDER_ID)
-                .removeable(true)
-                .build(session);
+        // Return null to prevent this from appearing in the account console credential list
+        // Email authentication doesn't store actual credentials - it uses the user's email address
+        return null;
     }
 
     @Override
