@@ -12,7 +12,7 @@ import org.keycloak.provider.ProviderConfigProperty;
 
 public class EmailAuthenticatorFormFactory implements AuthenticatorFactory {
 
-    public static final String PROVIDER_ID = "emailotp-authenticator";
+    public static final String PROVIDER_ID = "email-authenticator";
     public static final EmailAuthenticatorForm SINGLETON = new EmailAuthenticatorForm();
 
     @Override
