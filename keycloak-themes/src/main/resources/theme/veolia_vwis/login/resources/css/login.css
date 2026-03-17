@@ -31,9 +31,8 @@ header .navbar {
 .navbar-pf .navbar-header  {
     border: 0px;
     height: 60px;
-#    background:  #002d62 url('../img/Hubgrade-by-Veolia-REVERSE.png') no-repeat scroll 15px 15px;
-    background:  #002d62 url('../img/logo_veolia.png') no-repeat scroll 15px 15px;
-    background-size: 120px 30px;
+    background:  #002d62 url('../img/Capsule_Veolia_resize01.png') no-repeat scroll 15px 8px;
+    background-size: 120px 45px;
 }
 
 .navbar-pf{

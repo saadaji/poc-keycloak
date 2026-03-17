@@ -40,7 +40,7 @@ header .navbar {
     border: 0px;
     height: 60px;
     background:  #002d62 url('../img/Hubgrade-by-Veolia-REVERSE.png') no-repeat scroll 15px 15px;
-    background-size: 120px 30px;
+    background-size: 120px 35px;
 }
 
 .navbar-pf{
@@ -109,6 +109,8 @@ header .navbar {
     font-size: small;
     font-style: normal;
     line-height: 32px;
+
+#    background: #ddd;
     height: 100%;
 }
 
