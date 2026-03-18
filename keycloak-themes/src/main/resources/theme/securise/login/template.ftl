@@ -137,15 +137,15 @@
 
           <#nested "form">
 
-        <#if auth?has_content && auth.showTryAnotherWayLink()>
-          <form id="kc-select-try-another-way-form" action="${url.loginAction}" method="post" novalidate="novalidate">
-              <input type="hidden" name="tryAnotherWay" value="on"/>
-              <a id="try-another-way" href="javascript:document.forms['kc-select-try-another-way-form'].requestSubmit()"
-                  class="${properties.kcButtonSecondaryClass} ${properties.kcButtonBlockClass} ${properties.kcMarginTopClass}">
-                    ${msg("doTryAnotherWay")}
-              </a>
-          </form>
-        </#if>
+                  <#if auth?has_content && auth.showTryAnotherWayLink()>
+              <form id="kc-select-try-another-way-form" action="${url.loginAction}" method="post">
+                  <div class="${properties.kcFormGroupClass!}">
+                      <input type="hidden" name="tryAnotherWay" value="on"/>
+                      <a href="#" id="try-another-way"
+                         onclick="document.forms['kc-select-try-another-way-form'].requestSubmit();return false;">${msg("doTryAnotherWay")}</a>
+                  </div>
+              </form>
+          </#if>
 
           <#nested "socialProviders">
 

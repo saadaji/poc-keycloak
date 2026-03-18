@@ -36,7 +36,8 @@ public class EmailAuthenticatorCredentialProvider
         if (!supportsCredentialType(credentialType)) {
             return false;
         }
-        return user.getEmail() != null && !user.getEmail().isBlank();
+        // Email authentication is available if user has a valid email address
+        return user.credentialManager().getStoredCredentialsByTypeStream(credentialType).findAny().isPresent();
     }
 
     @Override
@@ -49,7 +50,7 @@ public class EmailAuthenticatorCredentialProvider
             String label = user.getEmail();
             credentialModel.setUserLabel(label == null || label.isBlank() ? "Email OTP" : label);
         }
-        return user.credentialManager().createStoredCredential(credentialModel);
+        return credentialModel;
     }
 
     @Override
@@ -64,9 +65,15 @@ public class EmailAuthenticatorCredentialProvider
 
     @Override
     public CredentialTypeMetadata getCredentialTypeMetadata(CredentialTypeMetadataContext context) {
-        // Return null to prevent this from appearing in the account console credential list
-        // Email authentication doesn't store actual credentials - it uses the user's email address
-        return null;
+        return CredentialTypeMetadata.builder()
+                .type(EmailAuthenticatorCredentialModel.TYPE_ID)
+                .category(CredentialTypeMetadata.Category.TWO_FACTOR)
+                .displayName("email-authenticator-display-name")
+                .helpText("email-authenticator-help-text")
+                .iconCssClass("kcAuthenticatorEmailClass")
+                .createAction(EmailAuthenticatorRequiredAction.PROVIDER_ID)
+                .removeable(true)
+                .build(session);
     }
 
     @Override

@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import org.keycloak.authentication.Authenticator;
 /**
  * Keycloak authenticator that implements two-factor authentication via email.
  * <p>
@@ -51,11 +51,15 @@ import java.util.Map;
  * @version 26.1.1
  * @since 1.0.0
  */
-public class EmailAuthenticatorForm extends AbstractUsernameFormAuthenticator
-        implements CredentialValidator<EmailAuthenticatorCredentialProvider> {
+/*public class EmailAuthenticatorForm extends AbstractUsernameFormAuthenticator
+        implements CredentialValidator<EmailAuthenticatorCredentialProvider> {*/
+
+public class EmailAuthenticatorForm implements Authenticator {
 
     protected static final Logger logger = Logger.getLogger(EmailAuthenticatorForm.class);
     private static final String CODE_ATTEMPTS = "emailCodeAttempts";
+    private static final String FIELD_NAME = "code";
+
 
     /**
      * Initiates the authentication process by presenting the email OTP challenge to
@@ -71,7 +75,7 @@ public class EmailAuthenticatorForm extends AbstractUsernameFormAuthenticator
      */
     @Override
     public void authenticate(AuthenticationFlowContext context) {
-        context.challenge(challenge(context, null));
+        context.challenge(challenge(context, null, FIELD_NAME));
     }
 
     /**
@@ -87,7 +91,6 @@ public class EmailAuthenticatorForm extends AbstractUsernameFormAuthenticator
      * @param field   optional field name associated with the error
      * @return the HTTP response containing the rendered form
      */
-    @Override
     protected Response challenge(AuthenticationFlowContext context, String error, String field) {
         generateAndSendEmailCode(context);
         LoginFormsProvider form = prepareForm(context, null);
@@ -190,10 +193,10 @@ public class EmailAuthenticatorForm extends AbstractUsernameFormAuthenticator
     @Override
     public void action(AuthenticationFlowContext context) {
         UserModel userModel = context.getUser();
-        if (!enabledUser(context, userModel)) {
+        /*if (!enabledUser(context, userModel)) {
             // error in context is set in enabledUser/isDisabledByBruteForce
             return;
-        }
+        }*/
 
         MultivaluedMap<String, String> formData = context.getHttpRequest().getDecodedFormParameters();
         if (handleFormShortcuts(context, formData)) {
@@ -218,7 +221,7 @@ public class EmailAuthenticatorForm extends AbstractUsernameFormAuthenticator
             }
 
             resetEmailCode(context);
-            context.challenge(challenge(context, null));
+            challenge(context, null, FIELD_NAME);
             return true;
         }
 
@@ -376,14 +379,18 @@ public class EmailAuthenticatorForm extends AbstractUsernameFormAuthenticator
 
     @Override
     public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
-        return getCredentialProvider(session).isConfiguredFor(realm, user, getType(session));
+        //return getCredentialProvider(session).isConfiguredFor(realm, user, getType(session));
+
+        // Email authentication is available if user has a valid email address
+
+        return user.getEmail() != null && !user.getEmail().isBlank();
     }
 
-    @Override
+    /*@Override
     public EmailAuthenticatorCredentialProvider getCredentialProvider(KeycloakSession session) {
         return (EmailAuthenticatorCredentialProvider) session.getProvider(CredentialProvider.class,
                 EmailAuthenticatorCredentialProviderFactory.PROVIDER_ID);
-    }
+    }*/
 
     @Override
     public void setRequiredActions(KeycloakSession session, RealmModel realm, UserModel user) {

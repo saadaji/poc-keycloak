@@ -63,89 +63,89 @@ services:
     networks:
       - keycloak-internal
 
-  prometheus:
-    image: prom/prometheus:latest
-    networks:
-      - keycloak-internal
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-    restart: unless-stopped
-    depends_on:
-      - keycloak-x-1
+#  prometheus:
+#    image: prom/prometheus:latest
+#    networks:
+#      - keycloak-internal
+#    container_name: prometheus
+#    ports:
+#      - "9090:9090"
+#    volumes:
+#      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+#      - prometheus-data:/prometheus
+#    command:
+#      - '--config.file=/etc/prometheus/prometheus.yml'
+#      - '--storage.tsdb.path=/prometheus'
+#    restart: unless-stopped
+#    depends_on:
+#      - keycloak-x-1
 
-  prometheus-bg-adapter:
-    image: quay.io/kohlstechnology/prometheus_bigquery_remote_storage_adapter:v0.8.0
-    user: "root"
-    environment:
-      PROMBQ_GCP_PROJECT_ID: "fr-ist-isteau-keycloak-dev"
-      PROMBQ_DATASET: "kpitest"
-      PROMBQ_TABLE: "kc_metrics"
-      PROMBQ_TIMEOUT: "2m"
-      GOOGLE_APPLICATION_CREDENTIALS: "/root/.config/gcloud/application_default_credentials.json"
-    ports:
-      - "9201:9201"
-    networks:
-      - keycloak-internal
-    volumes:
-      - /home/saji/.config:/root/.config:ro
-    depends_on:
-      - prometheus
+#  prometheus-bg-adapter:
+#    image: quay.io/kohlstechnology/prometheus_bigquery_remote_storage_adapter:v0.8.0
+#    user: "root"
+#    environment:
+#      PROMBQ_GCP_PROJECT_ID: "fr-ist-isteau-keycloak-dev"
+#      PROMBQ_DATASET: "kpitest"
+#      PROMBQ_TABLE: "kc_metrics"
+#      PROMBQ_TIMEOUT: "2m"
+#      GOOGLE_APPLICATION_CREDENTIALS: "/root/.config/gcloud/application_default_credentials.json"
+#    ports:
+#      - "9201:9201"
+#    networks:
+#      - keycloak-internal
+#    volumes:
+#      - /home/saji/.config:/root/.config:ro
+#    depends_on:
+#      - prometheus
 
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    ports:
-      - 3000:3000
-    restart: unless-stopped
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - grafana-conf:/etc/grafana
-    networks:
-      - keycloak-internal
+#  grafana:
+#    image: grafana/grafana
+#    container_name: grafana
+#    ports:
+#      - 3000:3000
+#    restart: unless-stopped
+#    volumes:
+#      - grafana-data:/var/lib/grafana
+#      - grafana-conf:/etc/grafana
+#    networks:
+#      - keycloak-internal
 
-  migrate:
-    depends_on:
-      keycloak-x-db:
-        condition: service_healthy
-    image: openfga/openfga:latest
-    container_name: migrate
-    command: migrate
-    environment:
-      - OPENFGA_DATASTORE_ENGINE=postgres
-      - OPENFGA_DATASTORE_URI=postgres://admin:password@keycloak-x-db:5432/openfga?sslmode=disable
-    networks:
-      - keycloak-internal
+#  migrate:
+#    depends_on:
+#      keycloak-x-db:
+#        condition: service_healthy
+#    image: openfga/openfga:latest
+#    container_name: migrate
+#    command: migrate
+#    environment:
+#      - OPENFGA_DATASTORE_ENGINE=postgres
+#      - OPENFGA_DATASTORE_URI=postgres://admin:password@keycloak-x-db:5432/openfga?sslmode=disable
+#    networks:
+#      - keycloak-internal
 
-  openfga:
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-    image: openfga/openfga:latest
-    container_name: openfga
-    environment:
-      - OPENFGA_DATASTORE_ENGINE=postgres
-      - OPENFGA_DATASTORE_URI=postgres://admin:password@keycloak-x-db:5432/openfga?sslmode=disable
-      - OPENFGA_LOG_FORMAT=json
-    command: 
-      - run
-      - --http-cors-allowed-origins=https://play.fga.dev,http://localhost:3000,http://localhost:3001
-      - --http-cors-allowed-headers=*
-    networks:
-      - keycloak-internal
-    ports:
-      # Needed for the http server
-      - "8082:8080"
-      # Needed for the grpc server (if used)
-      - "8081:8081"
-      # Needed for the playground (Do not enable in prod!)
-      - "3001:3000"
+#  openfga:
+#    depends_on:
+#      migrate:
+#        condition: service_completed_successfully
+#    image: openfga/openfga:latest
+#    container_name: openfga
+#    environment:
+#      - OPENFGA_DATASTORE_ENGINE=postgres
+#      - OPENFGA_DATASTORE_URI=postgres://admin:password@keycloak-x-db:5432/openfga?sslmode=disable
+#      - OPENFGA_LOG_FORMAT=json
+#    command: 
+#      - run
+#      - --http-cors-allowed-origins=https://play.fga.dev,http://localhost:3000,http://localhost:3001
+#      - --http-cors-allowed-headers=*
+#    networks:
+#      - keycloak-internal
+#    ports:
+#      # Needed for the http server
+#      - "8082:8080"
+##      # Needed for the grpc server (if used)
+#      - "8081:8081"
+#      # Needed for the playground (Do not enable in prod!)
+#      - "3001:3000"
   
 
 volumes:

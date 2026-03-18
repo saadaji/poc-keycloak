@@ -27,7 +27,7 @@ public class EmailAuthenticatorFormFactory implements AuthenticatorFactory {
 
     @Override
     public String getReferenceCategory() {
-        return EmailAuthenticatorCredentialModel.TYPE_ID;
+        return "email-authenticator";
     }
 
     @Override

@@ -20,7 +20,8 @@
 				</div>
 			</div>
 		</form>
-	<#elseif section = "info" >
+		
+	<#elseif section = "info" >  
 		${msg("smsAuthInstruction")}
 	</#if>
 </@layout.registrationLayout>

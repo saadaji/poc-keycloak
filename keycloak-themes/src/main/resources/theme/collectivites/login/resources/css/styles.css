@@ -806,3 +806,15 @@ br_passwd {
    line-height: 8px;
 }
 
+#try-another-way {
+    color: #002d62 !important;
+    font-weight: bold;
+    text-decoration: none !important;
+}
+
+#try-another-way:link,
+#try-another-way:visited,
+#try-another-way:hover,
+#try-another-way:active {
+    text-decoration: none !important;
+}

@@ -42,5 +42,5 @@
                 </div>
             </div>
         </form>
-    </#if>
+	</#if>
 </@layout.registrationLayout>
