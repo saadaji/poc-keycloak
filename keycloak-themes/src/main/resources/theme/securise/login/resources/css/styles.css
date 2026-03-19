@@ -784,3 +784,15 @@ input[type="number"] {
   style: height:50px; width: 100%
 }
 
+#try-another-way:link,
+#try-another-way:visited,
+#try-another-way {
+    color: #002d62 !important;
+    text-decoration: underline !important;
+}
+
+
+#try-another-way:hover,
+#try-another-way:active {
+    text-decoration: none !important;
+}
