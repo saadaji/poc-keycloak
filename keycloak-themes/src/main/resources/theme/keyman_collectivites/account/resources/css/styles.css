@@ -26,3 +26,37 @@ input:read-only {
    border: 0;
 }
 
+
+#mode-manual,
+#mode-manual:link,
+#mode-manual:visited {
+    color: #002d62 !important;
+    text-decoration: underline !important;
+}
+#mode-manual:hover,
+#mode-manual:active {
+    text-decoration: none !important;
+}
+
+#try-another-way:link,
+#try-another-way:visited,
+#try-another-way {
+    color: #002d62 !important;
+    text-decoration: underline !important;
+}
+#try-another-way:hover,
+#try-another-way:active {
+    text-decoration: none !important;
+}
+
+
+#forgot-password:link,
+#forgot-password:visited,
+#forgot-password {
+    color: #002d62 !important;
+    text-decoration: underline !important;
+}
+#forgot-password:hover,
+#forgot-password:active {
+    text-decoration: none !important;
+}
