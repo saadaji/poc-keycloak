@@ -50,7 +50,7 @@ ENV QUARKUS_HTTP_LIMITS_MAX_FORM_ATTRIBUTE_SIZE=1M
 
 #CACHE
 ENV KC_CACHE=ispn
-ENV KC_CACHE_STACK=jdbc-ping-vef
+ENV KC_CACHE_STACK=jdbc-ping
 ENV KC_CACHE_CONFIG_FILE=custom-caches-jgroups.xml
 
 #Log level
