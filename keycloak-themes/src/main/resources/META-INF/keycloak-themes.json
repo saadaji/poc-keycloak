@@ -20,5 +20,8 @@
   }, {
     "name" : "veolia_vwis",
     "types": [ "login" ]
+  }, {
+    "name" : "setom",
+    "types": [ "login" ]
   }]
 }
