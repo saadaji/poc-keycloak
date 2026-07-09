@@ -3,6 +3,7 @@ version: "3.9"
 services:
   keycloak-x-db:
     image: postgres:17
+    hostname: keycloak-x-db   # stable DNS name — survives force-recreate with new IP
     networks:
       - keycloak-internal
     ports:
@@ -29,16 +30,21 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: password
       KC_DB: postgres
       KC_DB_PASSWORD: password
-      KC_DB_URL_HOST: plf_clp_federation_id_keycloak_vef-keycloak-x-db-1
+      KC_DB_URL_HOST: keycloak-x-db
       KC_DB_URL_PORT: 5432 
       KC_DB_URL_DATABASE: keycloak
       KC_DB_USERNAME: admin
+      # TCP-level socket timeouts in the JDBC URL — most reliable way to detect network failure.
+      # socketTimeout=10: any idle connection over a dead network fails within 10s (OS-level)
+      # connectTimeout=5: new connection attempts fail after 5s if DB unreachable
+      # loginTimeout=5: authentication timeout
+      KC_DB_URL_PROPERTIES: "?socketTimeout=10&connectTimeout=5&loginTimeout=5&tcpKeepAlive=true"
       KC_DB_POOL_INITIAL_SIZE: 10
       KC_DB_POOL_MAX_SIZE: 20
-      KC_DB_POOL_MIN_SIZE: 10
+      KC_DB_POOL_MIN_SIZE: 0   # allow pool to shrink to 0 — old connections are dropped, not kept alive
       KC_DB_SCHEMA: public
       KC_CACHE_CONFIG_MUTATE: true
-      KC_CACHE_STACK: 'jdbc-ping-vef'
+      KC_CACHE_STACK: 'jdbc-ping'
       KC_LOG_FORMAT: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"
       KC_LOG_LEVEL: "INFO"
       SCIM_AUTHENTICATION_MODE: "KEYCLOAK"
@@ -49,6 +55,8 @@ services:
         #KC_HTTP_METRICS_SLOS: true
         #KC_CACHE_METRICS_HISTOGRAMS_ENABLED: true
         #KC_HTTP_METRICS_HISTOGRAMS_ENABLED: true
+      # Disable JVM DNS cache so Keycloak re-resolves the DB hostname after failover
+      JAVA_OPTS_APPEND: "-Dnetworkaddress.cache.ttl=10 -Dnetworkaddress.cache.negative.ttl=0"
     command:
       - "start"
     ports:
@@ -158,3 +166,6 @@ volumes:
 networks:
   keycloak-internal:
     name: keycloak-internal
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

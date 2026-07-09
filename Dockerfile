@@ -1,4 +1,5 @@
-FROM quay.io/keycloak/keycloak:26.5.5 AS builder
+ARG KEYCLOAK_VERSION=26.5.5
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS builder
 
 #### Env build options #####
 #DB
@@ -26,7 +27,8 @@ RUN keytool -genkeypair -storepass password -storetype PKCS12 -keyalg RSA -keysi
 
 RUN /opt/keycloak/bin/kc.sh build --verbose
 
-FROM quay.io/keycloak/keycloak:26.5.5
+ARG KEYCLOAK_VERSION
+FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
 
 #### Env config #####
 #HTTP
