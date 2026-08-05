@@ -15,6 +15,7 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -25,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 public class KeycloakContainerTest {
+    private static final String KEYCLOAK_IMAGE = "quay.io/keycloak/keycloak:"
+            + System.getProperty("keycloak.image.version");
     private static final Network network = Network.newNetwork();
     // Integration test: Keycloak + Selenium
     private static KeycloakContainer keycloak;
@@ -32,23 +35,31 @@ public class KeycloakContainerTest {
 
     @BeforeAll
     public static void setupKeycloakAndBrowser() {
-        keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.4.7")
+        keycloak = new KeycloakContainer(KEYCLOAK_IMAGE)
                 .withExposedPorts(8080, 9000)
                 .withRealmImportFile("test-realm-realm.json")
                 .withAdminUsername("admin")
                 .withAdminPassword("admin")
+                .withEnv("JAVA_OPTS_KC_HEAP", "-Xms128m -Xmx400m")
                 .withNetwork(network)
                 .withNetworkAliases("keycloak")
                 .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("app")))
                 .waitingFor(Wait.forListeningPort())
-                //.withStartupTimeout(Duration.ofMinutes(10))
+                .withStartupTimeout(Duration.ofMinutes(5))
                 .withVerboseOutput();
         keycloak.start();
         System.out.println(keycloak.getLogs());
 
-        browserContainer = new BrowserWebDriverContainer<>()
+        ChromeOptions chromeOptions = new ChromeOptions();
+        chromeOptions.addArguments("--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu");
+
+        // Use native ARM Chromium image to avoid QEMU emulation crashes on aarch64 (Podman on Apple Silicon)
+        DockerImageName seleniumImage = DockerImageName.parse("seleniarm/standalone-chromium:latest")
+                .asCompatibleSubstituteFor("selenium/standalone-chrome");
+
+        browserContainer = new BrowserWebDriverContainer<>(seleniumImage)
                 .withNetwork(network)
-                .withCapabilities(new ChromeOptions())
+                .withCapabilities(chromeOptions)
                 .dependsOn(keycloak)
                 .withRecordingMode(BrowserWebDriverContainer.VncRecordingMode.SKIP, null);
         browserContainer.start();
