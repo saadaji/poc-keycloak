@@ -17,8 +17,6 @@
         <testcontainers.keycloak.version>4.1.1</testcontainers.keycloak.version>
         <selenium.version>4.8.0</selenium.version>
         <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
-        <!-- Podman socket — override with -Ddocker.host=... or set DOCKER_HOST env var -->
-        <docker.host>unix:///var/folders/j1/sx7ct9qx6qn8069z1f57_pn80000gp/T/podman/podman-machine-default-api.sock</docker.host>
     </properties>
 
     <dependencies>
@@ -81,11 +79,32 @@
                         <keycloak.image.version>${keycloak.version}</keycloak.image.version>
                     </systemPropertyVariables>
                     <environmentVariables>
-                        <DOCKER_HOST>${docker.host}</DOCKER_HOST>
                         <TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>
                     </environmentVariables>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Activate with: mvn test -Ppodman
+             Or set docker.host on the command line: mvn test -Ddocker.host=unix:///path/to/podman.sock -->
+        <profile>
+            <id>podman</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <environmentVariables>
+                                <DOCKER_HOST>${docker.host}</DOCKER_HOST>
+                                <TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>
+                            </environmentVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
