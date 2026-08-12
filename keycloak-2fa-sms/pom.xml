@@ -6,7 +6,7 @@
 
 	<groupId>dasniko</groupId>
 	<artifactId>keycloak-2fa-sms-authenticator</artifactId>
-	<version>26.5.5.1</version>
+	<version>26.6.4.1</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
