@@ -1,4 +1,13 @@
 ARG KEYCLOAK_VERSION=26.6.4
+
+FROM registry.access.redhat.com/ubi9/ubi:latest AS vi-builder
+
+# only for DEV
+#RUN dnf install -y vi && \
+#    dnf clean all
+
+
+#ARG KEYCLOAK_VERSION=26.6.4
 FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS builder
 
 #### Env build options #####
@@ -18,6 +27,8 @@ ENV KC_EVENT_METRICS_USER_ENABLED=true
 COPY keycloak-image/conf /opt/keycloak/conf
 # Install custom providers
 COPY keycloak-image/providers /opt/keycloak/providers
+# COPY THEMES
+COPY keycloak-themes/src/main/resources/theme/ /opt/keycloak/themes/
 
 HEALTHCHECK NONE
 
@@ -50,7 +61,9 @@ ENV QUARKUS_HTTP_ACCESS_LOG_EXCLUDE_PATTERN='(/resources/|/health|.*/.well-known
 ENV QUARKUS_HTTP_LIMITS_MAX_INITIAL_LINE_LENGTH=8192
 ENV QUARKUS_HTTP_LIMITS_MAX_FORM_ATTRIBUTE_SIZE=1M
 
+
 #CACHE
+# A virer pour DEV
 ENV KC_CACHE=ispn
 ENV KC_CACHE_STACK=jdbc-ping
 ENV KC_CACHE_CONFIG_FILE=custom-caches-jgroups.xml
@@ -66,6 +79,10 @@ ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_PATTERN="dd.MM.yyyy HH:mm:ss"
 
 #COPY keycloak folder from image builder
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
+
+#COPY from ubi9 vi
+COPY --from=vi-builder /usr/bin/vi /usr/bin/vi
+
 
 #Network conf
 USER root

@@ -8,8 +8,7 @@
     <name>VEF keycloak</name>
   <url>http://maven.apache.org</url>
     <modules>
-        <module>keycloak-themes</module>
-        <module>keycloak-2fa-email-authenticator</module>
+	<module>keycloak-2fa-email-authenticator</module>
         <module>keycloak-2fa-sms</module>
         <module>keycloak-event-listener-sns</module>
         <module>keycloak-habilia-mapper</module>

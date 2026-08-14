@@ -1,0 +1,98 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>vef.keycloak</groupId>
+  <artifactId>plf_clp_federation_id_keycloak_corporate</artifactId>
+  <version>26.6.4.1</version>
+    <packaging>pom</packaging>
+    <name>VEF keycloak</name>
+  <url>http://maven.apache.org</url>
+    <modules>
+        <module>keycloak-themes</module>
+        <module>keycloak-2fa-email-authenticator</module>
+        <module>keycloak-2fa-sms</module>
+        <module>keycloak-event-listener-sns</module>
+        <module>keycloak-habilia-mapper</module>
+        <module>keycloak-metrics</module>
+        <module>keycloak-image</module>
+        <module>keycloak-test</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <keycloak.version>26.6.4</keycloak.version>
+        <exec.allowed.modules>keycloak-themes</exec.allowed.modules>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-admin-ui</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-account-ui</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>keycloak-themes-vendor</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.keycloak</groupId>
+                <artifactId>theme-verifier-maven-plugin</artifactId>
+                <version>${keycloak.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>build-gradle-keycloak-lastlogin-event-listener</id>
+                        <phase>install</phase>
+                        <goals><goal>exec</goal></goals>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <executable>./gradlew</executable>
+                            <workingDirectory>keycloak-lastlogin-event-listener</workingDirectory>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>--no-build-cache</argument>
+                                <argument>--refresh-dependencies</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-gradle-keycloak-scim-server</id>
+                        <phase>install</phase>
+                        <inherited>false</inherited>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>./gradlew</executable>
+                            <workingDirectory>keycloak-scim-server</workingDirectory>
+                            <arguments>
+                                <argument>build</argument>
+                                <argument>-x</argument>
+                                <argument>test</argument>
+                                <argument>--no-build-cache</argument>
+                                <argument>--refresh-dependencies</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>
