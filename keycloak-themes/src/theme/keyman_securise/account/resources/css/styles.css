@@ -1,0 +1,27 @@
+body {
+  --pf-global--FontFamily--sans-serif: Arial;
+  --pf-global--FontFamily--heading--sans-serif: Arial;
+
+  /* bandeau */
+  --pf-v5-global--BackgroundColor--dark-100: #FF0000;
+
+  --pf-v5-c-page__main-section--m-light--BackgroundColor: #E0E0E0;
+
+  --pf-global--Color--100: #004080;
+
+}
+
+.pf-c-nav__list .pf-c-nav__link {
+  --pf-c-nav__list-link--Color: #2B9AF3;
+  --pf-c-nav__list-link--m-current--Color: #004080;
+}
+
+.pf-c-nav__simple-list .pf-c-nav__link {
+  --pf-c-nav__simple-list-link--Color: #2B9AF3;
+  --pf-c-nav__simple-list-link--m-current--Color: #004080;
+}
+
+input:read-only {
+   background-color: #E0E0E0;
+   border: 0;
+}

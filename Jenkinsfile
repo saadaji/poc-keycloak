@@ -26,6 +26,11 @@ spec:
          value: ""
      securityContext:
        privileged: true
+   - name: terraform
+     image: hashicorp/terraform:1.15
+     imagePullPolicy: Always
+     tty: true
+     command: ["cat"]
 """
  
 pipeline {
@@ -82,7 +87,7 @@ pipeline {
        stage('Docker Image Build') {
             steps {
                 script{
-                    def TAG_VERSION = env.TAG_NAME
+                    TAG_VERSION = env.TAG_NAME
                     
                     if (!TAG_VERSION) {
                         TAG_VERSION = input(
@@ -98,6 +103,25 @@ pipeline {
                     withAWS(credentials: "${AWS_USER_ACCOUNT}"){
                         echo keycloak_vef_codebuild_project_name
                         awsCodeBuild projectName: "${keycloak_vef_codebuild_project_name}", region: "${AWS_REGION}", sourceControlType: 'jenkins', credentialsType: 'keys', envVariables: "[{TAG, ${TAG_VERSION}}]"
+                    }
+                }
+            }
+        }
+
+        stage('Update Terraform Stack') {
+            steps {
+                container('terraform') {
+                    withCredentials([usernamePassword(credentialsId: 'bitbucket-access-key', usernameVariable: 'BB_USER', passwordVariable: 'BB_TOKEN')]) {
+                        withAWS(credentials: "${AWS_USER_ACCOUNT}") {
+                            sh """
+                                git clone https://\${BB_USER}:\${BB_TOKEN}@bitbucket.org/ist-efr/plf_clp_federation_id_keycloak.git tf-stack
+                                cd tf-stack/infra/3_app
+
+                                terraform init -reconfigure
+                                terraform apply -auto-approve \\
+                                    -var="ecr_keycloak_image_version=${TAG_VERSION}"
+                            """
+                        }
                     }
                 }
             }

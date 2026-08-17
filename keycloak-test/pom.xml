@@ -75,6 +75,12 @@
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
+                    <!-- Fork a new JVM per test class so that the Testcontainers Docker HTTP
+                         connection pool is never shared between classes. Without this, a
+                         stale pooled TCP connection left over from a prior class causes
+                         "localhost:2375 failed to respond" in the next class. -->
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
                     <systemPropertyVariables>
                         <keycloak.image.version>${keycloak.version}</keycloak.image.version>
                     </systemPropertyVariables>
@@ -97,6 +103,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <forkCount>1</forkCount>
+                            <reuseForks>false</reuseForks>
                             <environmentVariables>
                                 <DOCKER_HOST>${docker.host}</DOCKER_HOST>
                                 <TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>

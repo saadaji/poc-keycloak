@@ -70,6 +70,7 @@ services:
       - "9000:9000"
     volumes:
       - ./data/:/data:z
+      - ./keycloak-themes/src/theme/:/opt/keycloak/themes:z
     depends_on:
       keycloak-x-db:
         condition: service_healthy

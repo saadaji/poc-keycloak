@@ -35,6 +35,22 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "pkce-test-client",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": [
+        "http://example.com",
+        "http://example.com/*"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     }
   ]
 }

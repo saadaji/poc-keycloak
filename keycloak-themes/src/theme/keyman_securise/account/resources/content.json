@@ -1,0 +1,9 @@
+[
+  { "label": "Gérez votre profil", "path": "" },
+  {
+    "label": "accountSecurity",
+    "children": [
+      { "label": "signingIn", "path": "account-security/signing-in" }
+    ]
+  }
+]
