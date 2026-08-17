@@ -10,7 +10,7 @@
 	<div class="span_passwd" style="line-height:normal" align="justify">
                 Merci de v&eacute;rifier vos donn&eacute;es personnelles et de les corriger si besoin.<BR><BR>
                 Attention, le num&eacute;ro de t&eacute;l&eacute;phone doit &ecirc;tre au format international<BR>
-                (pour la France, en d&ecirc;butant par +33)
+                (pour la France, en d&ecirc;butant par +33... sans le zéro   ex. +336xxXXxxXX)
                 <br_passwd>
         </div>
 
