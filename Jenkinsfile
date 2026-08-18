@@ -111,25 +111,22 @@ pipeline {
         stage('Update Terraform Stack') {
             steps {
                 container('terraform') {
-                    withCredentials([gitUsernamePassword(credentialsId: 'bitbucket-techniquejenkins')]) {
-                        withAWS(credentials: "${AWS_USER_ACCOUNT}") {
-                            sh """
-                                git clone https://bitbucket.org/ist-efr/plf_clp_federation_id_keycloak.git tf-stack
-                                cd tf-stack/infra/3_app
+                    withAWS(credentials: "${AWS_USER_ACCOUNT}") {
+                        sh """
+                            git clone https://bitbucket.org/ist-efr/plf_clp_federation_id_keycloak.git tf-stack
+                            cd tf-stack/infra/3_app
 
-                                sed -i "s|ecr_keycloak_image_version.*=.*|ecr_keycloak_image_version = \"${TAG_VERSION}\"|" env/dev/backend.conf
+                            sed -i "s|ecr_keycloak_image_version.*=.*|ecr_keycloak_image_version = \"${TAG_VERSION}\"|" env/dev/backend.conf
 
-                                terraform init -reconfigure -backend-config=env/dev/backend.conf
-                                terraform apply -auto-approve \\
-                                    -var="ecr_keycloak_image_version=${TAG_VERSION}"
+                            terraform init -reconfigure -backend-config=env/dev/backend.conf
+                            terraform apply -auto-approve
 
-                                git config user.email "jenkins@ci"
-                                git config user.name "Jenkins"
-                                git add -A
-                                git commit -m "chore: update keycloak image version to ${TAG_VERSION}" || echo "Nothing to commit"
-                                git push
-                            """
-                        }
+                            git config user.email "jenkins@ci"
+                            git config user.name "Jenkins"
+                            git add -A
+                            git commit -m "chore: update keycloak image version to ${TAG_VERSION}" || echo "Nothing to commit"
+                            git push
+                        """
                     }
                 }
             }
