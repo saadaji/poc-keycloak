@@ -121,7 +121,7 @@ pipeline {
                                     git clone git@bitbucket.org:ist-efr/plf_clp_federation_id_keycloak.git tf-stack
                                     cd tf-stack/infra/3_app
 
-                                    sed -i "s|ecr_keycloak_image_version.*=.*|ecr_keycloak_image_version = \"${TAG_VERSION}\"|" env/dev/variables.tfvars
+                                    sed -i 's|ecr_keycloak_image_version.*=.*|ecr_keycloak_image_version = "'"${TAG_VERSION}"'"|' env/dev/variables.tfvars
 
                                     terraform init -reconfigure -backend-config=env/dev/backend.conf
                                     terraform apply -auto-approve \\
