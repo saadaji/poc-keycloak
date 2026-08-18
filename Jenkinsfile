@@ -116,7 +116,9 @@ pipeline {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             withAWS(credentials: "${AWS_USER_ACCOUNT}") {
                                 sh """
-                                    git clone https://bitbucket.org/ist-efr/plf_clp_federation_id_keycloak.git tf-stack
+                                    export GIT_SSH_COMMAND="ssh -i \${TERRAFORM_GIT_PK} -o StrictHostKeyChecking=no"
+
+                                    git clone git@bitbucket.org:ist-efr/plf_clp_federation_id_keycloak.git tf-stack
                                     cd tf-stack/infra/3_app
 
                                     sed -i "s|ecr_keycloak_image_version.*=.*|ecr_keycloak_image_version = \"${TAG_VERSION}\"|" env/dev/backend.conf
