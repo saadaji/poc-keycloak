@@ -125,7 +125,7 @@ pipeline {
 
                                     terraform init -reconfigure -backend-config=env/dev/backend.conf
                                     terraform apply -auto-approve \\
-                                        -var-file=env/dev/terraform.tfvars
+                                        -var-file=env/dev/variables.tfvars
 
                                     git config user.email "jenkins@ci"
                                     git config user.name "Jenkins"
