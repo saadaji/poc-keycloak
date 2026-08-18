@@ -112,7 +112,10 @@ pipeline {
         stage('Update Terraform Stack') {
             steps {
                 container('terraform') {
-                    withCredentials([sshUserPrivateKey(credentialsId: "${SSH_CREDENTIAL_ID}", keyFileVariable: 'TERRAFORM_GIT_PK', passphraseVariable: '', usernameVariable: '')]) {
+                    withCredentials([
+                        sshUserPrivateKey(credentialsId: "${SSH_CREDENTIAL_ID}", keyFileVariable: 'TERRAFORM_GIT_PK', passphraseVariable: '', usernameVariable: ''),
+                        string(credentialsId: 'bitbucket-techniquejenkins', variable: 'BB_TOKEN')
+                    ]) {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             withAWS(credentials: "${AWS_USER_ACCOUNT}") {
                                 sh """
@@ -129,6 +132,7 @@ pipeline {
 
                                     git config user.email "jenkins@ci"
                                     git config user.name "Jenkins"
+                                    git remote set-url origin https://x-token-auth:\${BB_TOKEN}@bitbucket.org/ist-efr/plf_clp_federation_id_keycloak.git
                                     git add -A
                                     git commit -m "chore: update keycloak image version to ${TAG_VERSION}" || echo "Nothing to commit"
                                     git push
