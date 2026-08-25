@@ -7,7 +7,7 @@
     <parent>
         <groupId>vef.keycloak</groupId>
         <artifactId>plf_clp_federation_id_keycloak_corporate</artifactId>
-        <version>26.6.4.1</version>
+        <version>26.7.2.1</version>
     </parent>
     <artifactId>keycloak-habilia-mapper</artifactId>
     <name>VEF Keycloak habilia mapper</name>
