@@ -26,7 +26,7 @@ services:
       context: .  # Dossier contenant votre Dockerfile
       dockerfile: Dockerfile
       args:
-        KEYCLOAK_VERSION: 26.6.4
+        KEYCLOAK_VERSION: 26.7.2
     # image: keycloak-26.6.4
     privileged: true
     environment:

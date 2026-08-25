@@ -1,4 +1,4 @@
-ARG KEYCLOAK_VERSION=26.6.4
+ARG KEYCLOAK_VERSION=26.7.2
 
 FROM registry.access.redhat.com/ubi9/ubi:latest AS vi-builder
 
