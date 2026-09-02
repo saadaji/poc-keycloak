@@ -382,6 +382,7 @@ public class EmailAuthenticatorForm implements Authenticator {
         //return getCredentialProvider(session).isConfiguredFor(realm, user, getType(session));
 
         // Email authentication is available if user has a valid email address
+        logger.infof("Checking if user %s is configured for email authentication: %b", user.getUsername(), user.getEmail() != null && !user.getEmail().isBlank());
 
         return user.getEmail() != null && !user.getEmail().isBlank();
     }

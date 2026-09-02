@@ -50,7 +50,6 @@ pipeline {
        DOCKER_HOST = 'tcp://localhost:2375'
        DOCKER_TLS_VERIFY = 0
        TESTCONTAINERS_RYUK_DISABLED = 'true'
-       SSH_CREDENTIAL_ID = "bitbucket-techniquejenkins-ssh"
    }
  
    stages {
@@ -80,7 +79,19 @@ pipeline {
            steps {
                container('java21') {
                    script {
-                       sh "mvn clean install"
+                       // Restrict which Keycloak themes get packaged based on the git tag.
+                       // If the tag contains a known theme keyword (case-insensitive),
+                       // only that theme is bundled into keycloak-themes-*.jar; otherwise
+                       // all themes are included (default behavior).
+                       def tagForThemes = (env.TAG_NAME ?: '').toLowerCase()
+                       def themeArg = ''
+                       def themeKeywords = ['ileo', 'setom']
+                       def matchedTheme = themeKeywords.find { tagForThemes.contains(it) }
+                       if (matchedTheme) {
+                           themeArg = "-Dtheme.include=${matchedTheme}"
+                           echo "Tag '${env.TAG_NAME}' matches theme filter: building only '${matchedTheme}' theme"
+                       }
+                       sh "mvn clean install ${themeArg}"
                    }
                }
            }
@@ -113,15 +124,14 @@ pipeline {
             steps {
                 container('terraform') {
                     withCredentials([
-                        sshUserPrivateKey(credentialsId: "${SSH_CREDENTIAL_ID}", keyFileVariable: 'TERRAFORM_GIT_PK', passphraseVariable: '', usernameVariable: ''),
-                        string(credentialsId: 'bitbucket-techniquejenkins', variable: 'BB_TOKEN')
+                        string(credentialsId: 'KECYLOAK_INFRA_TOKEN', variable: 'KEYCLOAK_INFRA_TOKEN')
                     ]) {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             withAWS(credentials: "${AWS_USER_ACCOUNT}") {
                                 sh """
-                                    export GIT_SSH_COMMAND="ssh -i \${TERRAFORM_GIT_PK} -o StrictHostKeyChecking=no"
+                                    GIT_REPO_URL="https://x-token-auth:\${KEYCLOAK_INFRA_TOKEN}@bitbucket.org/ist-efr/plf_clp_federation_id_keycloak.git"
 
-                                    git clone git@bitbucket.org:ist-efr/plf_clp_federation_id_keycloak.git tf-stack
+                                    git clone "\${GIT_REPO_URL}" tf-stack
                                     cd tf-stack/infra/3_app
 
                                     sed -i 's|ecr_keycloak_image_version.*=.*|ecr_keycloak_image_version = "'"${TAG_VERSION}"'"|' env/dev/variables.tfvars
@@ -132,6 +142,7 @@ pipeline {
 
                                     git config user.email "jenkins@ci"
                                     git config user.name "Jenkins"
+                                    git remote set-url origin "\${GIT_REPO_URL}"
                                     git add -A
                                     if git commit -m "chore: update keycloak image version to ${TAG_VERSION}"; then
                                         git push

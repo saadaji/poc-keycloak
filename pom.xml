@@ -72,23 +72,6 @@
                             </arguments>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>build-gradle-keycloak-scim-server</id>
-                        <phase>install</phase>
-                        <inherited>false</inherited>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <executable>./gradlew</executable>
-                            <workingDirectory>keycloak-scim-server</workingDirectory>
-                            <arguments>
-                                <argument>build</argument>
-                                <argument>-x</argument>
-                                <argument>test</argument>
-                                <argument>--no-build-cache</argument>
-                                <argument>--refresh-dependencies</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>

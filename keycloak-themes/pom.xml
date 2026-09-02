@@ -13,6 +13,12 @@
 
     <properties>
         <maven.exec.skip>false</maven.exec.skip>
+        <!--
+            Controls which theme folders under src/main/resources/theme are packaged
+            into the resulting jar. Default `*` includes all themes.
+            Override with e.g. `-Dtheme.include=ileo` to only package the `ileo` theme.
+        -->
+        <theme.include>*</theme.include>
     </properties>
 
 
@@ -37,6 +43,10 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <includes>
+                    <include>META-INF/**</include>
+                    <include>theme/${theme.include}/**</include>
+                </includes>
             </resource>
         </resources>
         <!--<plugins>
