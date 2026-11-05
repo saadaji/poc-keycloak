@@ -170,6 +170,23 @@ class ApiSmsServiceTest {
 	}
 
 	@Test
+	@DisplayName("ocx format: sends smsNotifications body with base64 content")
+	void ocxFormatSendsSmsNotificationsBody() throws Exception {
+		Map<String, String> env = Map.of("SMS_API_URL", apiUrl(), "SMS_API_FORMAT", "ocx");
+
+		new ApiSmsService(new HashMap<>(), env).send("+33 6 12 34 56 78", "code");
+
+		CapturedRequest request = awaitRequest();
+		assertEquals("application/json", request.contentType());
+		assertTrue(request.body().startsWith("{\"smsNotifications\":[{"));
+		assertTrue(request.body().contains("\"sender\":\"VEO\""));
+		assertTrue(request.body().contains("\"billingCode\":\"IDDG\""));
+		assertTrue(request.body().contains("\"telephoneNumber\":\"+33612345678\""));
+		assertTrue(request.body().contains("\"contentType\":\"text/plain\""));
+		assertTrue(request.body().contains("\"content\":\"Y29kZQ==\""));
+	}
+
+	@Test
 	@DisplayName("cleanPhoneNumber: no transformation when countrycode is empty")
 	void cleanPhoneNumberDoesNothingWithoutCountryCode() throws Exception {
 		ApiSmsService service = newService(Map.of("urlencode", "true", "countrycode", ""));

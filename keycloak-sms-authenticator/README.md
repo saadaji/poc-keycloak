@@ -52,6 +52,23 @@ If the SMS API requires a bearer token issued by an identity provider, set these
 
 When token URL, client id and client secret are all set, the token is fetched (client authentication via HTTP Basic), cached until shortly before expiry, and sent as `Authorization: Bearer <token>`. This takes precedence over the other authentication options above.
 
+### Communication-orchestration (OCX) payload
+Set `SMS_API_FORMAT=ocx` to send the body expected by the communication-orchestration API (`POST` to the URL in `SMS_API_URL`, which must be the complete API URL, e.g. `https://api-vfg.veo.fr/communication-orchestration/v1/notifications`). A 2xx response without `processingId` is logged as a warning:
+
+```json
+{"smsNotifications":[{"sender":"VEO","billingCode":"IDDG","senderReference":"IDDG-...",
+  "recipients":[{"appOriginReference":"IDDG-...","telephoneNumber":"+33..."}],
+  "message":{"contentType":"text/plain","encoding":"UTF-8","content":"<base64 message>"}}]}
+```
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `SMS_API_FORMAT` | (empty) | `ocx` to enable this payload format. |
+| `SMS_API_SENDER` | `VEO` | `sender` field. |
+| `SMS_API_BILLING_CODE` | `IDDG` | `billingCode` field (also used as prefix of the generated references). |
+
+The message attribute/receiver/sender settings of the authenticator config are ignored in this mode.
+
 # Usage
 After successfully configured the authenticator and the required actions users can set up SMS Authentication in the
 account console `/realms/realm/account/#/account-security/signing-in` by entering and confirming their phone number.

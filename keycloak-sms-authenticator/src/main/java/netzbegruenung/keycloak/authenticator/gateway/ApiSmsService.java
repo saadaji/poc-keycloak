@@ -21,7 +21,11 @@
 
 package netzbegruenung.keycloak.authenticator.gateway;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import org.keycloak.util.JsonSerialization;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -70,6 +74,11 @@ public class ApiSmsService implements SmsService{
 	/** Non-null when OAuth2 client credentials are configured through environment variables. */
 	private final ClientCredentialsTokenProvider tokenProvider;
 
+	/** When true, the request body follows the communication-orchestration "smsNotifications" format. */
+	private final boolean ocxFormat;
+	private final String ocxSender;
+	private final String ocxBillingCode;
+
 	ApiSmsService(Map<String, String> config) {
 		this(config, System.getenv());
 	}
@@ -95,6 +104,10 @@ public class ApiSmsService implements SmsService{
 			}
 			tokenProvider = null;
 		}
+
+		ocxFormat = "ocx".equalsIgnoreCase(env.get("SMS_API_FORMAT"));
+		ocxSender = isSet(env.get("SMS_API_SENDER")) ? env.get("SMS_API_SENDER") : "VEO";
+		ocxBillingCode = isSet(env.get("SMS_API_BILLING_CODE")) ? env.get("SMS_API_BILLING_CODE") : "IDDG";
 
 		urlencode = Boolean.parseBoolean(config.getOrDefault("urlencode", "false"));
 
@@ -135,7 +148,10 @@ public class ApiSmsService implements SmsService{
 			if (getUrl != null && !getUrl.isBlank()) {
 				requestBuilder = getRequest(phoneNumber, message);
 			} else {
-				if (urlencode) {
+				if (ocxFormat) {
+					requestPayload = getOcxBody(phoneNumber, message);
+					requestBuilder = jsonRequest(requestPayload);
+				} else if (urlencode) {
 					requestBuilder = urlencodedRequest(phoneNumber, message);
 				} else {
 					requestPayload = getJsonBody(phoneNumber, message);
@@ -161,7 +177,11 @@ public class ApiSmsService implements SmsService{
 			String payload = hideResponsePayload ? "redacted" : "Response: " + response.body();
 
 			if (statusCode >= 200 && statusCode < 300) {
-				logger.infof("Sent SMS to %s [%s]", phoneNumber, payload);
+				if (ocxFormat && (response.body() == null || !response.body().contains("processingId"))) {
+					logger.warnf("SMS API returned HTTP %s without processingId, message may not have been accepted [%s]", statusCode, payload);
+				} else {
+					logger.infof("Sent SMS to %s [%s]", phoneNumber, payload);
+				}
 			} else {
 				logErrorStatus(phoneNumber, payload, request, requestPayload, statusCode);
 			}
@@ -172,6 +192,33 @@ public class ApiSmsService implements SmsService{
 			logger.errorf("SMS send failed: %s", e.toString());
 			logErrorException(phoneNumber, request, requestPayload);
 		}
+	}
+
+	/**
+	 * Body expected by the communication-orchestration API:
+	 * {"smsNotifications":[{"sender","billingCode","senderReference","recipients":[{"appOriginReference","telephoneNumber"}],
+	 * "message":{"contentType","encoding","content"(base64)}}]}
+	 */
+	private String getOcxBody(String phoneNumber, String message) throws IOException {
+		String reference = ocxBillingCode + "-" + UUID.randomUUID() + "-" + System.currentTimeMillis();
+
+		Map<String, Object> recipient = new LinkedHashMap<>();
+		recipient.put("appOriginReference", reference);
+		recipient.put("telephoneNumber", phoneNumber.replaceAll("\\s", ""));
+
+		Map<String, Object> content = new LinkedHashMap<>();
+		content.put("contentType", "text/plain");
+		content.put("encoding", StandardCharsets.UTF_8.displayName());
+		content.put("content", Base64.getEncoder().encodeToString(message.getBytes(StandardCharsets.UTF_8)));
+
+		Map<String, Object> notification = new LinkedHashMap<>();
+		notification.put("sender", ocxSender);
+		notification.put("billingCode", ocxBillingCode);
+		notification.put("senderReference", reference);
+		notification.put("recipients", List.of(recipient));
+		notification.put("message", content);
+
+		return JsonSerialization.writeValueAsString(Map.of("smsNotifications", List.of(notification)));
 	}
 
 	private static boolean isSet(String value) {

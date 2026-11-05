@@ -59,6 +59,10 @@ services:
       SMS_API_TOKEN_URL: ${SMS_API_TOKEN_URL:-}
       SMS_API_CLIENT_ID: ${SMS_API_CLIENT_ID:-}
       SMS_API_CLIENT_SECRET: ${SMS_API_CLIENT_SECRET:-}
+      SMS_API_SCOPE: ${SMS_API_SCOPE:-}
+      SMS_API_FORMAT: ${SMS_API_FORMAT:-}
+      SMS_API_SENDER: ${SMS_API_SENDER:-}
+      SMS_API_BILLING_CODE: ${SMS_API_BILLING_CODE:-}
     command:
       - "start"
       - "--import-realm"
