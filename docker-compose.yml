@@ -20,17 +20,25 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    hostname: mailcatcher
+    networks:
+      - keycloak-internal
+    ports:
+      - "1025:1025"  # SMTP
+      - "1080:1080"  # Web UI
   
   keycloak-x-1:
-    build:
-      context: .  # Dossier contenant votre Dockerfile
+    build: 
+      context: .
       dockerfile: Dockerfile
-      args:
-        KEYCLOAK_VERSION: 26.7.2
-    # image: keycloak-26.6.4
+    container_name: keycloak-x-1
     privileged: true
+    env_file:
+      - ./keycloak-distrib/conf/env/keycloak-common.env
     environment:
-      KC_HOSTNAME_STRICT: false
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: password
       KC_DB: postgres
@@ -39,43 +47,38 @@ services:
       KC_DB_URL_PORT: 5432 
       KC_DB_URL_DATABASE: keycloak
       KC_DB_USERNAME: admin
-      # TCP-level socket timeouts in the JDBC URL — most reliable way to detect network failure.
-      # socketTimeout=10: any idle connection over a dead network fails within 10s (OS-level)
-      # connectTimeout=5: new connection attempts fail after 5s if DB unreachable
-      # loginTimeout=5: authentication timeout
       KC_DB_URL_PROPERTIES: "?socketTimeout=10&connectTimeout=5&loginTimeout=5&tcpKeepAlive=true"
       KC_DB_POOL_INITIAL_SIZE: 10
       KC_DB_POOL_MAX_SIZE: 20
       KC_DB_POOL_MIN_SIZE: 0   # allow pool to shrink to 0 — old connections are dropped, not kept alive
       KC_DB_SCHEMA: public
-      KC_CACHE_CONFIG_MUTATE: true
-      KC_CACHE_STACK: 'jdbc-ping'
-      KC_LOG_FORMAT: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"
-      KC_LOG_LEVEL: "INFO"
-      SCIM_AUTHENTICATION_MODE: "KEYCLOAK"
-      # Enable metrics
-      KC_METRICS_ENABLED: true
-      KC_HEALTH_ENABLED: true
-      #KC_METRICS_CACHE_ENABLED: true 
-        #KC_HTTP_METRICS_SLOS: true
-        #KC_CACHE_METRICS_HISTOGRAMS_ENABLED: true
-        #KC_HTTP_METRICS_HISTOGRAMS_ENABLED: true
-      # Disable JVM DNS cache so Keycloak re-resolves the DB hostname after failover
-      JAVA_OPTS_APPEND: "-Dnetworkaddress.cache.ttl=10 -Dnetworkaddress.cache.negative.ttl=0"
+      KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL: info
+      KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_ERROR_LEVEL: warn
+      # SMS API (OAuth2 client credentials) - provide via shell env or .env file
+      SMS_API_URL: ${SMS_API_URL:-}
+      SMS_API_TOKEN_URL: ${SMS_API_TOKEN_URL:-}
+      SMS_API_CLIENT_ID: ${SMS_API_CLIENT_ID:-}
+      SMS_API_CLIENT_SECRET: ${SMS_API_CLIENT_SECRET:-}
     command:
       - "start"
+      - "--import-realm"
     ports:
       - "8080:8080"
       - "7800:7800"
       - "9000:9000"
     volumes:
       - ./data/:/data:z
-      - ./keycloak-themes/src/theme/:/opt/keycloak/themes:z
+      - ./keycloak-distrib/conf/realms/partenaires-realm.json:/opt/keycloak/data/import/partenaires-realm.json:ro
     depends_on:
       keycloak-x-db:
         condition: service_healthy
+      mailcatcher:
+        condition: service_started
     networks:
       - keycloak-internal
+
+
+
 
 #  prometheus:
 #    image: prom/prometheus:latest

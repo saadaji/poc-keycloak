@@ -1,13 +1,5 @@
-ARG KEYCLOAK_VERSION=26.7.2
+ARG KEYCLOAK_VERSION=26.7.3
 
-FROM registry.access.redhat.com/ubi9/ubi:latest AS vi-builder
-
-# only for DEV
-#RUN dnf install -y vi && \
-#    dnf clean all
-
-
-#ARG KEYCLOAK_VERSION=26.6.4
 FROM quay.io/keycloak/keycloak:${KEYCLOAK_VERSION} AS builder
 
 #### Env build options #####
@@ -24,11 +16,10 @@ ENV KC_METRICS_ENABLED=true
 ENV KC_EVENT_METRICS_USER_ENABLED=true
 
 # COPY conf
-COPY keycloak-image/conf /opt/keycloak/conf
+COPY keycloak-distrib/conf/cache /opt/keycloak/conf
 # Install custom providers
-COPY keycloak-image/providers /opt/keycloak/providers
-# COPY THEMES
-#COPY keycloak-themes/src/main/resources/theme/ /opt/keycloak/themes/
+COPY keycloak-distrib/providers /opt/keycloak/providers
+
 
 HEALTHCHECK NONE
 
@@ -47,9 +38,6 @@ ENV KC_PROXY_HEADERS=xforwarded
 ENV KC_HTTP_ENABLED=true
 ENV KC_HTTP_MANAGEMENT_PORT=9000
 
-#Truststore
-##todo: switch volume to /opt/keycoak/conf/truststores and remove this env var
-ENV KC_TRUSTSTORE_PATHS=/data
 ENV KC_TLS_HOSTNAME_VERIFIER=DEFAULT
 
 #Quarkus
@@ -72,24 +60,8 @@ ENV KC_CACHE_CONFIG_FILE=custom-caches-jgroups.xml
 ENV KC_LOG_LEVEL=INFO
 ENV KC_LOG_CONSOLE_OUTPUT=json
 
-#Lastlogin SPI
-ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ATTRIBUTE="last_login"
-ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_ZONE_ID="Europe/Paris"
-ENV KC_SPI_EVENTS_LISTENER_LAST_LOGIN_PATTERN="dd.MM.yyyy HH:mm:ss"
-
 #COPY keycloak folder from image builder
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
-
-#COPY from ubi9 vi
-COPY --from=vi-builder /usr/bin/vi /usr/bin/vi
-
-
-#Network conf
-USER root
-RUN chown -Rf keycloak:keycloak /opt/keycloak
-RUN echo "net.core.rmem_max=25600000" > /etc/sysctl.conf
-RUN echo "net.core.wmem_max=1024000" >> /etc/sysctl.conf
-
 
 
 USER keycloak

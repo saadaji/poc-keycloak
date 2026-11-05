@@ -2,12 +2,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>vef.keycloak</groupId>
-        <artifactId>plf_clp_federation_id_keycloak_corporate</artifactId>
-        <version>26.7.2.1</version>
+        <groupId>keycloak</groupId>
+        <artifactId>poc-keycloak</artifactId>
+        <version>26.7.3.1</version>
     </parent>
     <artifactId>keycloak-themes</artifactId>
-    <name>VEF keycloak themes</name>
+    <name>keycloak themes</name>
     <description>Keycloak Themes</description>
     <packaging>jar</packaging>
 

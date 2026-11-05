@@ -1,27 +1,6 @@
 {
   "themes": [{
-    "name" : "collectivites",
-    "types": [ "account", "login", "email" ]
-  }, {
-    "name" : "keyman_collectivites",
-    "types": [ "account"]
-  }, {
-    "name" : "keyman_securise",
-    "types": [ "account" ]
-  }, {
-    "name" : "keyman_veolia",
-    "types": [ "account" ]
-  }, {
-    "name" : "securise",
-    "types": [ "account","email","login"]
-  }, {
-    "name" : "veolia",
-    "types": [ "account", "login" ]
-  }, {
-    "name" : "veolia_vwis",
-    "types": [ "login" ]
-  }, {
-    "name" : "setom",
-    "types": [ "login" ]
+    "name" : "partenaires",
+    "types": [ "login"]
   }]
 }

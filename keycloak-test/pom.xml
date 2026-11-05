@@ -2,21 +2,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>vef.keycloak</groupId>
-        <artifactId>plf_clp_federation_id_keycloak_corporate</artifactId>
-        <version>26.7.2.1</version>
+        <groupId>keycloak</groupId>
+        <artifactId>poc-keycloak</artifactId>
+        <version>26.7.3.1</version>
     </parent>
     <artifactId>keycloak-test</artifactId>
-    <name>VEF keycloak test</name>
+    <name>keycloak test</name>
     <url>http://maven.apache.org</url>
 
     <properties>
         <!-- Test versions -->
-        <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <testcontainers.version>1.21.4</testcontainers.version>
-        <testcontainers.keycloak.version>4.1.1</testcontainers.keycloak.version>
-        <selenium.version>4.8.0</selenium.version>
-        <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
+        <testcontainers.keycloak.version>4.3.1</testcontainers.keycloak.version>
+        <selenium.version>4.49.0</selenium.version>
+        <maven.surefire.plugin.version>3.6.0</maven.surefire.plugin.version>
     </properties>
 
     <dependencies>
@@ -24,18 +23,15 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
 
         <!-- Testcontainers core and JUnit 5 integration -->
-
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -51,17 +47,17 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Testcontainers Selenium integration and Selenium WebDriver -->
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>selenium</artifactId>
-            <version>${testcontainers.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>${selenium.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>selenium</artifactId>
+            <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

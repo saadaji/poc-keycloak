@@ -1,4 +1,4 @@
-package $vef.keycloak;
+package $keycloak;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

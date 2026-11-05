@@ -1,6 +1,6 @@
 # keycloak-test
 
-Integration test suite for the VEF Keycloak custom providers. Tests run against a real Keycloak instance started inside Docker/Podman via [Testcontainers](https://testcontainers.com/), with a headless Selenium Chromium browser for UI-driven flows.
+Integration test suite for the Keycloak custom providers. Tests run against a real Keycloak instance started inside Docker/Podman via [Testcontainers](https://testcontainers.com/), with a headless Selenium Chromium browser for UI-driven flows.
 
 ## Stack
 
@@ -15,7 +15,7 @@ Integration test suite for the VEF Keycloak custom providers. Tests run against 
 ## Prerequisites
 
 - Docker (or Podman — see [Running with Podman](#running-with-podman)) accessible from the test JVM
-- The `keycloak-image` module must be built first so that provider JARs are present in `../keycloak-image/providers/`
+- The `keycloak-distrib` module must be built first so that provider JARs are present in `../keycloak-distrib/providers/`
 
 ## Running the tests
 
@@ -49,8 +49,7 @@ A `@BeforeEach` hook hits the OIDC logout endpoint for every realm and clears al
 | Realm | JSON file | Users |
 |---|---|---|
 | `test-realm` | `test-realm-realm.json` | `testuser / password` |
-| `email-test-realm` | `email-test-realm-realm.json` | `emailuser / password` |
-| `sms-test-realm` | `sms-test-realm-realm.json` | `smsuser / password` |
+
 
 ---
 
@@ -78,58 +77,6 @@ Verifies the **Client Credentials Flow** using a plain HTTP client (no browser).
 2. Asserts HTTP `200`.
 3. Asserts the JSON response body contains `access_token`.
 
----
-
-### Email 2FA tests
-
-All email tests target `email-test-realm` / `email-test-client`. The Email OTP authenticator runs in **simulation mode**: instead of sending a real email it prints the code to the Keycloak container log, where the tests can extract it via regex (`SIMULATION MODE … Email code send to … is: <digits>`).
-
-#### `shouldDisplayEmailOtpFormAfterLogin`
-After a successful password login the Email OTP challenge form (`emailCode` input) must be displayed.
-
----
-
-#### `shouldRejectInvalidEmailCode`
-Submits the deliberately wrong code `000000`. Asserts that Keycloak rejects it and re-displays the OTP form (i.e. the `emailCode` input is still present).
-
----
-
-#### `shouldResendEmailOtpCode`
-Clicks the **Resend** button on the OTP form. Asserts that the OTP form remains visible with a refreshed state.
-
----
-
-#### `shouldCompleteAuthenticationWithValidEmailCode`
-Full happy-path Email 2FA flow:
-
-1. Logs in with password → OTP form appears.
-2. Polls Keycloak container logs (up to 15 s) for the simulated OTP code.
-3. Submits the extracted code.
-4. Asserts the browser is redirected to `http://example.com?code=…` — confirming successful second-factor authentication.
-
----
-
-### SMS 2FA tests
-
-All SMS tests target `sms-test-realm` / `sms-test-client`. The SMS authenticator runs in **simulation mode**: instead of sending a real SMS it prints the code to the container log (`SIMULATION MODE … Would send SMS … code is <digits>`).
-
-#### `shouldDisplaySmsOtpFormAfterLogin`
-After a successful password login the SMS OTP challenge form (`id="code"` input) must be displayed.
-
----
-
-#### `shouldRejectInvalidSmsCode`
-Submits the wrong code `000000`. Asserts the SMS form is re-displayed.
-
----
-
-#### `shouldCompleteAuthenticationWithValidSmsCode`
-Full happy-path SMS 2FA flow:
-
-1. Logs in with password → SMS code form appears.
-2. Polls container logs (up to 15 s) for the simulated OTP code.
-3. Submits the extracted code.
-4. Asserts the browser is redirected to `http://example.com?code=…`.
 
 ---
 

@@ -1,4 +1,4 @@
-package $vef.keycloak;
+package $keycloak;
 
 /**
  * Hello world!
