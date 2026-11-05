@@ -35,14 +35,14 @@
         ));
 
         JsonValue recipient = json(object(
-                field(FIELD_OCX_APP_ORIGIN_REFERENCE, "IDG-" + personInfo.get("uniqueId") + "-" + timestamp),
+                field(FIELD_OCX_APP_ORIGIN_REFERENCE, "IDDG-" + personInfo.get("uniqueId") + "-" + timestamp),
                 field(FIELD_OCX_TELEPHONE_NUMBER, personInfo.get("mobilePhoneNumber").replaceAll(" ", ""))
         ));
 
         JsonValue smsNotification = json(object(
-                field(FIELD_OCX_SENDER, "CNP"),
-                field(FIELD_OCX_BILLING_CODE, "IDG"),
-                field(FIELD_OCX_SENDER_REFERENCE, "IDG-" + personInfo.get("uniqueId") + "-" + timestamp),
+                field(FIELD_OCX_SENDER, "VEO"),
+                field(FIELD_OCX_BILLING_CODE, "IDDG"),
+                field(FIELD_OCX_SENDER_REFERENCE, "IDDG-" + personInfo.get("uniqueId") + "-" + timestamp),
                 field(FIELD_OCX_RECIPIENTS, json(array(recipient))),
                 field(FIELD_OCX_MESSAGE, message)));
 
@@ -55,8 +55,8 @@
             headers.add(HEADER_CONTENT_TYPE, "application/json");
 
             String baseUrl = kongBaseUrl;
-            if ("https://devcol-api.cnp.fr".equalsIgnoreCase(baseUrl)) {
-                baseUrl = "https://api-vfg.cnp.fr";
+            if ("https://devcol-api.veo.fr".equalsIgnoreCase(baseUrl)) {
+                baseUrl = "https://api-vfg.veo.fr";
             }
             String uri = kongWsBuildUrl2(baseUrl, OCX_API_NAME, OCX_API_VERSION, OCX_NOTIFICATIONS_ENDPOINT);
 
