@@ -1,0 +1,86 @@
+ private static final String OCX_API_NAME = "/communication-orchestration";
+    private static final String OCX_API_VERSION = "/v1";
+    private static final String OCX_NOTIFICATIONS_ENDPOINT = "/notifications";
+
+    private static final String FIELD_OCX_CONTENT_TYPE = "contentType";
+    private static final String FIELD_OCX_ENCODING = "encoding";
+    private static final String FIELD_OCX_CONTENT = "content";
+    private static final String FIELD_OCX_APP_ORIGIN_REFERENCE = "appOriginReference";
+    private static final String FIELD_OCX_TELEPHONE_NUMBER = "telephoneNumber";
+    private static final String FIELD_OCX_SENDER = "sender";
+    private static final String FIELD_OCX_BILLING_CODE = "billingCode";
+    private static final String FIELD_OCX_SENDER_REFERENCE = "senderReference";
+    private static final String FIELD_OCX_RECIPIENTS = "recipients";
+    private static final String FIELD_OCX_MESSAGE = "message";
+    private static final String FIELD_OCX_ADDRESSES_TO = "addressesTo";
+    private static final String FIELD_OCX_ADDRESSES = "addresses";
+    private static final String FIELD_OCX_REPLY_ADDRESS = "replyAddress";
+    private static final String FIELD_OCX_REPLY_ADDRESS_LABEL = "label";
+    private static final String FIELD_OCX_MAIL_SUBJECT = "subject";
+    private static final String FIELD_OCX_MAIL_BODY = "body";
+
+    public OCXResponse kongWsCallOcxSendSms(Map<String, String> personInfo, String msg) throws RestException {
+        JsonValue requestBody = kongWsBuildOcxSendSmsBody(personInfo, msg);
+        return getOCXResponse(requestBody, personInfo);
+    }
+
+    JsonValue kongWsBuildOcxSendSmsBody(Map<String, String> personInfo, String msg) {
+
+        final long timestamp = System.currentTimeMillis();
+
+        JsonValue message = json(object(
+                field(FIELD_OCX_CONTENT_TYPE, "text/plain"),
+                field(FIELD_OCX_ENCODING, StandardCharsets.UTF_8.displayName()),
+                field(FIELD_OCX_CONTENT, Base64.getEncoder().encodeToString(msg.getBytes()))
+        ));
+
+        JsonValue recipient = json(object(
+                field(FIELD_OCX_APP_ORIGIN_REFERENCE, "IDG-" + personInfo.get("uniqueId") + "-" + timestamp),
+                field(FIELD_OCX_TELEPHONE_NUMBER, personInfo.get("mobilePhoneNumber").replaceAll(" ", ""))
+        ));
+
+        JsonValue smsNotification = json(object(
+                field(FIELD_OCX_SENDER, "CNP"),
+                field(FIELD_OCX_BILLING_CODE, "IDG"),
+                field(FIELD_OCX_SENDER_REFERENCE, "IDG-" + personInfo.get("uniqueId") + "-" + timestamp),
+                field(FIELD_OCX_RECIPIENTS, json(array(recipient))),
+                field(FIELD_OCX_MESSAGE, message)));
+
+        return json(object(field("smsNotifications", json(array(smsNotification)))));
+    }
+    protected OCXResponse getOCXResponse(JsonValue requestBody, Map<String, String> personInfo) throws RestException {
+        Response response;
+        try {
+            Headers headers = kongWsBuildHeaders(IDGRestApiConfiguration.getAccessToken());
+            headers.add(HEADER_CONTENT_TYPE, "application/json");
+
+            String baseUrl = kongBaseUrl;
+            if ("https://devcol-api.cnp.fr".equalsIgnoreCase(baseUrl)) {
+                baseUrl = "https://api-vfg.cnp.fr";
+            }
+            String uri = kongWsBuildUrl2(baseUrl, OCX_API_NAME, OCX_API_VERSION, OCX_NOTIFICATIONS_ENDPOINT);
+
+            restRequest = buildRestRequest(
+                    new RestRequest.RestRequestBuilder(uri, "POST")
+                            .headers(headers)
+                            .body(requestBody)
+            );
+
+            response = restRequest.wsRestCall();
+            OCXResponse ocxResponse = objectMapper.readValue(response.getEntity().getString(), OCXResponse.class);
+
+            if (response.getStatus().isSuccessful() && ocxResponse != null && ocxResponse.getProcessingId() != null) {
+                return ocxResponse;
+            }
+
+            Map<String, String> eventParams = getOCXErrorEventParams(ocxResponse, personInfo, null);
+            this.kongWsCallCptCreateEvent(eventParams);
+
+            return null;
+        }
+        catch (Exception e) {
+            Map<String, String> eventParams = getOCXErrorEventParams(null, personInfo, e);
+            this.kongWsCallCptCreateEvent(eventParams);
+            throw new RestException(e);
+        }
+    }
