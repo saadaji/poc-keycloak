@@ -64,22 +64,31 @@ public class SmsAuthCredentialProvider implements CredentialProvider<SmsAuthCred
 
     @Override
     public boolean supportsCredentialType(String credentialType) {
-        if (this.session.getContext() != null && this.session.getContext().getAuthenticationSession() != null 
-            && this.session.getContext().getAuthenticationSession().getAuthenticatedUser() != null) {
-            if (this.session.getContext().getAuthenticationSession().getAuthenticatedUser().getId() != null) {
-                RealmModel realm = session.getContext() != null ? session.getContext().getRealm() : null;
-                UserModel user = this.session.getContext().getAuthenticationSession().getAuthenticatedUser();
-                if (!user.credentialManager()
-                        .getStoredCredentialsByTypeStream(SmsAuthCredentialModel.TYPE)
-                        .findAny().isPresent()
-                        && user.getFirstAttribute("mobile_number") != null 
-                        && !user.getFirstAttribute("mobile_number").isBlank()) {
-                    logger.infof("Creating messaging authenticator credential for user %s", user.getId());
-                    this.createCredential(realm, user, createCredential(user));
-                }
-            }
+        if (!getType().equals(credentialType)) {
+            return false;
         }
-        return getType().equals(credentialType);
+
+        if (session.getContext() == null || session.getContext().getAuthenticationSession() == null) {
+            return true;
+        }
+
+        UserModel user = session.getContext().getAuthenticationSession().getAuthenticatedUser();
+        if (user == null || user.getId() == null) {
+            return true;
+        }
+
+        String mobileNumber = user.getFirstAttribute("mobile_number");
+        boolean hasCredential = user.credentialManager()
+                .getStoredCredentialsByTypeStream(SmsAuthCredentialModel.TYPE)
+                .findAny()
+                .isPresent();
+
+        if (!hasCredential && mobileNumber != null && !mobileNumber.isBlank()) {
+            RealmModel realm = session.getContext().getRealm();
+            createCredential(realm, user, SmsAuthCredentialModel.createSmsAuthenticator(mobileNumber));
+        }
+
+        return true;
     }
 
     @Override
