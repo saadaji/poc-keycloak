@@ -95,6 +95,7 @@ header .navbar {
 
 .login-pf-page {
     padding-top: 0px;
+    padding-bottom: 40px;
 }
 
 .login-pf body {
@@ -508,7 +509,7 @@ ul#kc-totp-supported-apps {
 
 @media (min-height: 646px) {
     #kc-container-wrapper {
-        bottom: 12%;
+        bottom: calc(12% + 24px);
     }
 }
 
@@ -700,6 +701,7 @@ footer {
     bottom: 0;
     width: 100%;
     font-family: "FSSinclair-regular";
+    z-index: 100;
 }
 
 footer img {

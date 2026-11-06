@@ -136,6 +136,13 @@ public class ApiSmsService implements SmsService{
 	}
 
 	public void send(String phoneNumber, String message) {
+		if (!isApiUrlConfigured()) {
+			logger.errorf(
+				"SMS API URL is not configured (current value: '%s'). Configure 'SMS API URL' in the authenticator execution or set SMS_API_URL.",
+				String.valueOf(apiurl));
+			return;
+		}
+
 		phoneNumber = cleanPhoneNumber(phoneNumber, countrycode);
 		if (stripPlusPrefix && phoneNumber.startsWith("+")) {
 			phoneNumber = phoneNumber.substring(1);
@@ -223,6 +230,10 @@ public class ApiSmsService implements SmsService{
 
 	private static boolean isSet(String value) {
 		return value != null && !value.isBlank();
+	}
+
+	private boolean isApiUrlConfigured() {
+		return isSet(apiurl) && !apiurl.contains("example.com");
 	}
 
 	private void logErrorStatus(String phoneNumber, String responsePayload, HttpRequest request, String requestPayload, int statusCode) {

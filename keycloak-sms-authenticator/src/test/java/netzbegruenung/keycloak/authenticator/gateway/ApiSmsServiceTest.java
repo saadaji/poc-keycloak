@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -224,5 +225,21 @@ class ApiSmsServiceTest {
 		service.send("0176123456", "code");
 
 		assertEquals("+49176123456", parseFormData(awaitRequest().body()).get("to"));
+	}
+
+	@Test
+	@DisplayName("placeholder apiurl: does not attempt to send")
+	void placeholderApiUrlDoesNotSend() throws Exception {
+		Map<String, String> config = new HashMap<>();
+		config.put("apiurl", "https://example.com/api/sms/send");
+		config.put("messageattribute", "body");
+		config.put("receiverattribute", "to");
+		config.put("senderattribute", "sender");
+		config.put("senderId", "test-sender");
+		config.put("countrycode", "");
+
+		new ApiSmsService(config).send("+491234567", "code");
+
+		assertNull(requests.poll(500, TimeUnit.MILLISECONDS), "No request should be sent for placeholder apiurl");
 	}
 }

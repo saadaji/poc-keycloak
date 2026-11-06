@@ -77,7 +77,7 @@ public class SmsAuthenticatorFactory implements AuthenticatorFactory {
 			new ProviderConfigProperty("senderId", "SenderId", "The sender ID is displayed as the message sender on the receiving device.", ProviderConfigProperty.STRING_TYPE, "Keycloak"),
 			new ProviderConfigProperty("simulation", "Simulation mode", "In simulation mode, the SMS won't be sent, but printed to the server logs", ProviderConfigProperty.BOOLEAN_TYPE, true),
 			new ProviderConfigProperty("countrycode", "Default country prefix", "Default country prefix that is assumed if user does not provide one.", ProviderConfigProperty.STRING_TYPE, "+49"),
-			new ProviderConfigProperty("apiurl", "SMS API URL", "The path to the API that receives an HTTP request.", ProviderConfigProperty.STRING_TYPE, "https://example.com/api/sms/send"),
+			new ProviderConfigProperty("apiurl", "SMS API URL", "The path to the API that receives an HTTP request.", ProviderConfigProperty.STRING_TYPE, ""),
 			new ProviderConfigProperty("getUrl", "SMS API GET URL template", "If your SMS API expects a GET request instead of POST, you can set here a URL template with placeholders: {phone}, {message}, {apitoken}, {senderId}. If empty, a POST request will be sent.", ProviderConfigProperty.STRING_TYPE, ""),
 			new ProviderConfigProperty("stripPlusPrefix", "Strip + from phone number", "Remove the leading + from phone numbers before sending. Required for APIs expecting E.164 without + prefix (e.g., BudgetSMS).", ProviderConfigProperty.BOOLEAN_TYPE, false),
 			new ProviderConfigProperty("urlencode", "URL encode data", "By default send a JSON in HTTP POST body. You can URL encode the data instead.", ProviderConfigProperty.BOOLEAN_TYPE, false),
