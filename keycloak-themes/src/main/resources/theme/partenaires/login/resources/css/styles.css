@@ -529,6 +529,60 @@ ul#kc-totp-supported-apps {
     margin-top: 20px;
 }
 
+/* SMS authenticator: resend code button */
+#kc-form-buttons .sms-resend-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: transparent;
+    color: #002d62;
+    border: 2px solid #002d62;
+    border-radius: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease, box-shadow .2s ease, transform .1s ease;
+}
+
+#kc-form-buttons .sms-resend-btn::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z'/></svg>") no-repeat center / contain;
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z'/></svg>") no-repeat center / contain;
+    transition: transform .4s ease;
+}
+
+#kc-form-buttons .sms-resend-btn:hover,
+#kc-form-buttons .sms-resend-btn:focus {
+    background-color: #002d62;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 45, 98, 0.25);
+}
+
+#kc-form-buttons .sms-resend-btn:hover::before {
+    transform: rotate(180deg);
+}
+
+#kc-form-buttons .sms-resend-btn:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+#kc-form-buttons .sms-resend-btn:focus-visible {
+    outline: 3px solid rgba(85, 0, 179, 0.4);
+    outline-offset: 2px;
+}
+
+#kc-form-buttons .sms-resend-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
 .login-pf-page .login-pf-brand {
     margin-top: 20px;
     max-width: 360px;
