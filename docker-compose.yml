@@ -54,15 +54,15 @@ services:
       KC_DB_SCHEMA: public
       KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_SUCCESS_LEVEL: info
       KC_SPI_EVENTS_LISTENER_JBOSS_LOGGING_ERROR_LEVEL: warn
-      # SMS API (OAuth2 client credentials) - provide via shell env or .env file
+      SMS_API_FORMAT: ${SMS_API_FORMAT:-ocx}
       SMS_API_URL: ${SMS_API_URL:-}
       SMS_API_TOKEN_URL: ${SMS_API_TOKEN_URL:-}
       SMS_API_CLIENT_ID: ${SMS_API_CLIENT_ID:-}
       SMS_API_CLIENT_SECRET: ${SMS_API_CLIENT_SECRET:-}
       SMS_API_SCOPE: ${SMS_API_SCOPE:-}
-      SMS_API_FORMAT: ${SMS_API_FORMAT:-}
-      SMS_API_SENDER: ${SMS_API_SENDER:-}
-      SMS_API_BILLING_CODE: ${SMS_API_BILLING_CODE:-}
+      SMS_API_SENDER: ${SMS_API_SENDER:-VEO}
+      SMS_API_BILLING_CODE: ${SMS_API_BILLING_CODE:-IDDG}
+      # SMS API (OAuth2 client credentials) - provide via shell env or .env file
     command:
       - "start"
       - "--import-realm"

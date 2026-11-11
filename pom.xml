@@ -9,6 +9,7 @@
   <url>http://maven.apache.org</url>
     <modules>
         <module>keycloak-metrics</module>
+        <module>keycloak-sms-authenticator</module>
         <module>keycloak-themes</module>
         <module>keycloak-distrib</module>
         <module>keycloak-test</module>

@@ -119,6 +119,11 @@ public class SmsAuthenticator implements Authenticator, CredentialValidator<SmsA
 
 	@Override
 	public void action(AuthenticationFlowContext context) {
+		if (context.getHttpRequest().getDecodedFormParameters().containsKey("resend")) {
+			authenticate(context);
+			return;
+		}
+
 		String enteredCode = context.getHttpRequest().getDecodedFormParameters().getFirst("code");
 
 		AuthenticationSessionModel authSession = context.getAuthenticationSession();
